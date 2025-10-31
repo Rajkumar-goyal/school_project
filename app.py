@@ -671,17 +671,77 @@ def view_results(class_id):
                          results=results)
 
 # Student Routes
-@app.route('/student/dashboard')
+@app.route('/student_dashboard')
 @login_required
 def student_dashboard():
     if current_user.role != 'student':
-        flash('Access denied!', 'danger')
-        return redirect(url_for('index'))
+        return redirect(url_for('login'))
     
-    # Get student's classes
-    classes = Enrollment.get_student_classes(current_user.id)
+    # Get student information from the database
+    conn = get_db_connection()
     
-    return render_template('student_dashboard.html', classes=classes)
+    # Get student details from users table
+    student_user = conn.execute(
+        'SELECT * FROM users WHERE id = ?', (current_user.id,)
+    ).fetchone()
+    
+    # Get student details from students table
+    student_details = conn.execute('''
+        SELECT s.*, c.class_name, c.section 
+        FROM students s 
+        JOIN classes c ON s.class_id = c.id 
+        WHERE s.student_id = ? OR s.id IN (
+            SELECT student_id FROM student_enrollment WHERE student_id = ?
+        )
+    ''', (f"S{current_user.id:03d}", current_user.id)).fetchone()
+    
+    # If student_details is None, try to get from enrollment
+    if not student_details:
+        student_details = conn.execute('''
+            SELECT u.name as full_name, c.class_name, c.section, se.student_id
+            FROM student_enrollment se
+            JOIN users u ON se.student_id = u.id
+            JOIN classes c ON se.class_id = c.id
+            WHERE se.student_id = ?
+        ''', (current_user.id,)).fetchone()
+    
+    # Get student's results
+    results = conn.execute('''
+        SELECT s.subject_name, s.subject_code, r.marks_obtained, r.total_marks, 
+               r.exam_type, r.exam_date
+        FROM results r
+        JOIN subjects s ON r.subject_id = s.id
+        WHERE r.student_id = ?
+        ORDER BY r.exam_date DESC, s.subject_name
+    ''', (current_user.id,)).fetchall()
+    
+    conn.close()
+    
+    # Prepare student data for template
+    student_data = {
+        'first_name': student_user['name'].split(' ')[0] if student_user['name'] else 'Student',
+        'last_name': ' '.join(student_user['name'].split(' ')[1:]) if student_user['name'] else '',
+        'full_name': student_user['name'],
+        'roll_number': student_details['roll_number'] if student_details and 'roll_number' in student_details else 'N/A',
+        'class_name': student_details['class_name'] if student_details else 'N/A',
+        'section': student_details['section'] if student_details else 'N/A'
+    }
+    
+    # Prepare results data for template
+    results_data = []
+    for result in results:
+        results_data.append({
+            'code': result['subject_code'],
+            'name': result['subject_name'],
+            'marks': f"{result['marks_obtained']}/{result['total_marks']}",
+            'percentage': round((result['marks_obtained'] / result['total_marks']) * 100, 2),
+            'exam_type': result['exam_type'],
+            'exam_date': result['exam_date']
+        })
+    
+    return render_template('student_dashboard.html', 
+                         student=student_data, 
+                         results=results_data)
 
 @app.route('/student/my_results')
 @login_required

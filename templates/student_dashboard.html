@@ -1,55 +1,54 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Student Dashboard</title>
-    <style>
-        body { font-family: Arial, sans-serif; padding: 2rem; }
-        nav { background: #333; padding: 1rem; text-align: right; }
-        nav a { color: white; text-decoration: none; }
-        h1 { color: #333; }
-        table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-        th, td { border: 1px solid #ccc; padding: 0.7rem; text-align: left; }
-        th { background-color: #f4f4f4; }
-    </style>
-</head>
-<body>
-    <nav>
-        <span>Welcome, {{ student.first_name }}!</span> |
-        <a href="{{ url_for('logout') }}">Logout</a>
-    </nav>
-    
-    <h1>Your Results</h1>
-    <p><strong>Name:</strong> {{ student.first_name }} {{ student.last_name }}</p>
-    <p><strong>Roll Number:</strong> {{ student.roll_number }}</p>
+{% extends "base.html" %}
 
-    <hr>
-    
-    <h2>Report Card</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>Subject Code</th>
-                <th>Subject Name</th>
-                <th>Marks Obtained</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% if results %}
-                {% for result in results %}
-                    <tr>
-                        <td>{{ result.code }}</td>
-                        <td>{{ result.name }}</td>
-                        <td>{{ result.marks }}</td>
-                    </tr>
-                {% endfor %}
-            {% else %}
-                <tr>
-                    <td colspan="3">No results have been published for you yet.</td>
-                </tr>
-            {% endif %}
-        </tbody>
-    </table>
-    
-</body>
-</html>
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>Student Dashboard</h2>
+        <hr>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">My Classes</h5>
+            </div>
+            <div class="card-body">
+                {% if classes %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Class Name</th>
+                                <th>Section</th>
+                                <th>Academic Year</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for class in classes %}
+                            <tr>
+                                <td>{{ class['class_name'] }}</td>
+                                <td>{{ class['section'] }}</td>
+                                <td>{{ class['academic_year'] }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted">You are not enrolled in any classes yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="d-grid">
+            <a href="{{ url_for('my_results') }}" class="btn btn-primary btn-lg">View My Results</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
