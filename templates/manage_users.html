@@ -1,0 +1,232 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="mb-1">User Management</h2>
+                <p class="text-muted mb-0">Manage system users and their roles</p>
+            </div>
+            <div>
+                <a href="{{ url_for('upload_data') }}" class="btn btn-outline-primary">
+                    <i class="fas fa-upload me-2"></i>Bulk Upload
+                </a>
+            </div>
+        </div>
+        <hr>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Add New User</h5>
+            </div>
+            <div class="card-body">
+                <form id="addUserForm">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Username *</label>
+                            <input type="text" class="form-control" name="username" placeholder="Username" required>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Password *</label>
+                            <input type="password" class="form-control" name="password" placeholder="Password" required>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Role *</label>
+                            <select class="form-select" name="role" required>
+                                <option value="">Select Role</option>
+                                <option value="admin">Admin</option>
+                                <option value="teacher">Teacher</option>
+                                <option value="student">Student</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Full Name *</label>
+                            <input type="text" class="form-control" name="name" placeholder="Full Name" required>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" name="email" placeholder="Email">
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-plus me-2"></i>Add User
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">All Users</h5>
+                <span class="badge bg-primary">{{ users|length }} users</span>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Username</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Created At</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in users %}
+                            <tr id="user-row-{{ user['id'] }}">
+                                <td>{{ user['id'] }}</td>
+                                <td>
+                                    <strong>{{ user['username'] }}</strong>
+                                    {% if user['username'] == 'admin' %}
+                                    <br><small class="text-muted">System Administrator</small>
+                                    {% endif %}
+                                </td>
+                                <td>{{ user['name'] }}</td>
+                                <td>{{ user['email'] or 'N/A' }}</td>
+                                <td>
+                                    <span class="badge bg-{{ 'danger' if user['role'] == 'admin' else 'success' if user['role'] == 'teacher' else 'info' }}">
+                                        {{ user['role']|title }}
+                                    </span>
+                                </td>
+                                <td>{{ user['created_at'] }}</td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{{ url_for('edit_user', user_id=user['id']) }}" 
+                                           class="btn btn-outline-primary" title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        {% if user['username'] != 'admin' %}
+                                        <button class="btn btn-outline-danger delete-user" 
+                                                data-user-id="{{ user['id'] }}" 
+                                                data-user-name="{{ user['name'] }}"
+                                                title="Delete">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="7" class="text-center py-4">
+                                    <i class="fas fa-users fa-2x text-muted mb-2"></i>
+                                    <p class="text-muted">No users found</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add User Form Submission
+    const addUserForm = document.getElementById('addUserForm');
+    if (addUserForm) {
+        addUserForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const submitButton = this.querySelector('button[type="submit"]');
+            const originalText = submitButton.textContent;
+
+            // Show loading state
+            submitButton.disabled = true;
+            submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding...';
+
+            fetch('{{ url_for("add_user") }}', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    alert('User added successfully!');
+                    this.reset();
+                    location.reload();
+                } else {
+                    throw new Error(data.message || 'Failed to add user');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error adding user: ' + error.message);
+            })
+            .finally(() => {
+                // Reset button state
+                submitButton.disabled = false;
+                submitButton.textContent = originalText;
+            });
+        });
+    }
+
+    // Delete User
+    document.querySelectorAll('.delete-user').forEach(button => {
+        button.addEventListener('click', function() {
+            const userId = this.getAttribute('data-user-id');
+            const userName = this.getAttribute('data-user-name');
+            
+            if (confirm(`Are you sure you want to delete user "${userName}"? This action cannot be undone.`)) {
+                const originalButton = this;
+                const originalHTML = originalButton.innerHTML;
+                
+                // Show loading state
+                originalButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                originalButton.disabled = true;
+
+                fetch(`/admin/delete_user/${userId}`, {
+                    method: 'POST'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('User deleted successfully!');
+                        // Remove the row from table
+                        const row = document.getElementById('user-row-' + userId);
+                        if (row) {
+                            row.remove();
+                        } else {
+                            location.reload();
+                        }
+                    } else {
+                        throw new Error(data.message || 'Failed to delete user');
+                    }
+                })
+                .catch(error => {
+                    console.error('Delete error:', error);
+                    alert('Error deleting user: ' + error.message);
+                    // Restore button
+                    originalButton.innerHTML = originalHTML;
+                    originalButton.disabled = false;
+                });
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

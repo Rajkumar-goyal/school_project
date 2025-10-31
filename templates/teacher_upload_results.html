@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>Upload Results via Excel</h2>
+        <p class="text-muted">Bulk upload student results using Excel files</p>
+        <hr>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Upload Results File</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="file" class="form-label">Select Excel File</label>
+                        <input type="file" name="file" class="form-control" accept=".xlsx,.xls" required>
+                        <div class="form-text">
+                            Supported formats: .xlsx, .xls (Max 16MB)
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Upload Options</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="update_existing" id="update_existing" checked>
+                            <label class="form-check-label" for="update_existing">
+                                Update existing results for same student, subject, and exam type
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-upload"></i> Upload Results
+                        </button>
+                        <a href="{{ url_for('download_template', template_type='results') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-download"></i> Download Template
+                        </a>
+                        <a href="{{ url_for('teacher_dashboard') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left"></i> Back to Dashboard
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Upload Instructions -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Upload Instructions</h5>
+            </div>
+            <div class="card-body">
+                <ol>
+                    <li>Download the Excel template using the button above</li>
+                    <li>Fill in the data following the column requirements</li>
+                    <li>Save the file as Excel (.xlsx or .xls)</li>
+                    <li>Upload the file using the form</li>
+                    <li>Check the success message for any errors or warnings</li>
+                </ol>
+                
+                <div class="alert alert-info">
+                    <strong>Note:</strong> The system will validate all data before importing. 
+                    Rows with errors will be skipped, and you'll receive a detailed report.
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <!-- My Classes Card -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">My Classes</h5>
+            </div>
+            <div class="card-body">
+                {% if classes %}
+                <div class="list-group">
+                    {% for class in classes %}
+                    <div class="list-group-item">
+                        <h6 class="mb-1">{{ class.class_name }} - {{ class.section }}</h6>
+                        <small class="text-muted">
+                            Students: {{ class.student_count or 0 }} | 
+                            Results: {{ class.result_count or 0 }}
+                        </small>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted">No classes assigned</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Required Columns Card -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Required Columns</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Column</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>student_username</code></td>
+                            <td>Student's username (must exist)</td>
+                        </tr>
+                        <tr>
+                            <td><code>subject_code</code></td>
+                            <td>Subject code (must exist)</td>
+                        </tr>
+                        <tr>
+                            <td><code>class_name</code></td>
+                            <td>Class name (must exist)</td>
+                        </tr>
+                        <tr>
+                            <td><code>section</code></td>
+                            <td>Class section (must exist)</td>
+                        </tr>
+                        <tr>
+                            <td><code>marks_obtained</code></td>
+                            <td>Marks obtained (number)</td>
+                        </tr>
+                        <tr>
+                            <td><code>total_marks</code></td>
+                            <td>Total marks (number)</td>
+                        </tr>
+                        <tr>
+                            <td><code>exam_type</code></td>
+                            <td>Exam type (Midterm/Final/Quiz)</td>
+                        </tr>
+                        <tr>
+                            <td><code>academic_year</code></td>
+                            <td>Academic year (optional)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

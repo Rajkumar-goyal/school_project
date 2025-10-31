@@ -1,0 +1,245 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>Bulk Data Upload via Excel</h2>
+        <p class="text-muted">Upload Excel files to import multiple records at once</p>
+        <hr>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Users Upload -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Upload Users</h5>
+            </div>
+            <div class="card-body">
+                <h6>Required Columns:</h6>
+                <ul>
+                    <li><code>username</code> (unique)</li>
+                    <li><code>password</code></li>
+                    <li><code>role</code> (admin/teacher/student)</li>
+                    <li><code>name</code></li>
+                    <li><code>email</code> (optional)</li>
+                </ul>
+                <div class="mb-3">
+                    <form id="uploadUsersForm" enctype="multipart/form-data">
+                        <input type="file" name="file" class="form-control" accept=".xlsx,.xls" required>
+                    </form>
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-primary" onclick="uploadFile('users')">Upload Users</button>
+                    <a href="{{ url_for('download_template', template_type='users') }}" class="btn btn-outline-secondary">Download Template</a>
+                </div>
+                <div id="usersResult" class="mt-2"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Students Upload -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Upload Students</h5>
+            </div>
+            <div class="card-body">
+                <h6>Required Columns:</h6>
+                <ul>
+                    <li><code>full_name</code></li>
+                    <li><code>gender</code> (Male/Female/Other)</li>
+                    <li><code>date_of_birth</code> (YYYY-MM-DD)</li>
+                    <li><code>class_id</code></li>
+                    <li><code>roll_number</code></li>
+                    <li><code>fathers_name</code></li>
+                    <li><code>mothers_name</code></li>
+                    <li><code>mobile_number</code> (optional)</li>
+                </ul>
+                <div class="mb-3">
+                    <form id="uploadStudentsForm" enctype="multipart/form-data">
+                        <input type="file" name="file" class="form-control" accept=".xlsx,.xls" required>
+                    </form>
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-primary" onclick="uploadFile('students')">Upload Students</button>
+                    <a href="{{ url_for('download_template', template_type='students') }}" class="btn btn-outline-secondary">Download Template</a>
+                </div>
+                <div id="studentsResult" class="mt-2"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Subjects Upload -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Upload Subjects</h5>
+            </div>
+            <div class="card-body">
+                <h6>Required Columns:</h6>
+                <ul>
+                    <li><code>subject_name</code> (unique)</li>
+                    <li><code>subject_code</code> (unique)</li>
+                </ul>
+                <div class="mb-3">
+                    <form id="uploadSubjectsForm" enctype="multipart/form-data">
+                        <input type="file" name="file" class="form-control" accept=".xlsx,.xls" required>
+                    </form>
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-primary" onclick="uploadFile('subjects')">Upload Subjects</button>
+                    <a href="{{ url_for('download_template', template_type='subjects') }}" class="btn btn-outline-secondary">Download Template</a>
+                </div>
+                <div id="subjectsResult" class="mt-2"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Classes Upload -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Upload Classes</h5>
+            </div>
+            <div class="card-body">
+                <h6>Required Columns:</h6>
+                <ul>
+                    <li><code>class_name</code></li>
+                    <li><code>section</code></li>
+                    <li><code>teacher_username</code> (optional - must exist in users)</li>
+                </ul>
+                <div class="mb-3">
+                    <form id="uploadClassesForm" enctype="multipart/form-data">
+                        <input type="file" name="file" class="form-control" accept=".xlsx,.xls" required>
+                    </form>
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-primary" onclick="uploadFile('classes')">Upload Classes</button>
+                    <a href="{{ url_for('download_template', template_type='classes') }}" class="btn btn-outline-secondary">Download Template</a>
+                </div>
+                <div id="classesResult" class="mt-2"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results Upload -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Upload Results</h5>
+            </div>
+            <div class="card-body">
+                <h6>Required Columns:</h6>
+                <ul>
+                    <li><code>student_id</code> (must exist in students table)</li>
+                    <li><code>subject_code</code> (must exist)</li>
+                    <li><code>class_id</code> (must exist)</li>
+                    <li><code>marks_obtained</code></li>
+                    <li><code>total_marks</code></li>
+                    <li><code>exam_type</code></li>
+                    <li><code>academic_year</code> (optional)</li>
+                </ul>
+                <div class="mb-3">
+                    <form id="uploadResultsForm" enctype="multipart/form-data">
+                        <input type="file" name="file" class="form-control" accept=".xlsx,.xls" required>
+                    </form>
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-primary" onclick="uploadFile('results')">Upload Results</button>
+                    <a href="{{ url_for('download_template', template_type='results') }}" class="btn btn-outline-secondary">Download Template</a>
+                </div>
+                <div id="resultsResult" class="mt-2"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Class Subjects Upload -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Upload Class Subjects</h5>
+            </div>
+            <div class="card-body">
+                <h6>Required Columns:</h6>
+                <ul>
+                    <li><code>class_id</code> (must exist)</li>
+                    <li><code>subject_code</code> (must exist)</li>
+                    <li><code>is_compulsory</code> (1 for compulsory, 0 for optional)</li>
+                </ul>
+                <div class="mb-3">
+                    <form id="uploadClassSubjectsForm" enctype="multipart/form-data">
+                        <input type="file" name="file" class="form-control" accept=".xlsx,.xls" required>
+                    </form>
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-primary" onclick="uploadFile('class_subjects')">Upload Class Subjects</button>
+                    <a href="{{ url_for('download_template', template_type='class_subjects') }}" class="btn btn-outline-secondary">Download Template</a>
+                </div>
+                <div id="classSubjectsResult" class="mt-2"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Instructions</h5>
+            </div>
+            <div class="card-body">
+                <ol>
+                    <li>Download the template for the data you want to upload</li>
+                    <li>Fill in the data following the column requirements</li>
+                    <li>Save the file as Excel (.xlsx or .xls)</li>
+                    <li>Upload the file using the corresponding upload button</li>
+                    <li>Check the result message for any errors</li>
+                </ol>
+                <p class="text-warning"><strong>Note:</strong> The system will validate all data and skip any rows with errors. Make sure referenced data exists before uploading related records.</p>
+                <p class="text-info"><strong>Order of Operations:</strong></p>
+                <ol>
+                    <li>Upload Users (teachers first)</li>
+                    <li>Upload Classes</li>
+                    <li>Upload Subjects</li>
+                    <li>Upload Class Subjects</li>
+                    <li>Upload Students</li>
+                    <li>Upload Results</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function uploadFile(type) {
+    const formId = `upload${type.charAt(0).toUpperCase() + type.slice(1).replace('_', '')}Form`;
+    const resultDiv = `${type.replace('_', '')}Result`;
+    const form = document.getElementById(formId);
+    const formData = new FormData(form);
+    
+    if (!formData.get('file').name) {
+        alert('Please select a file first');
+        return;
+    }
+    
+    // Show loading
+    document.getElementById(resultDiv).innerHTML = '<div class="alert alert-info">Uploading... Please wait.</div>';
+    
+    fetch(`/admin/upload_${type}`, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        const alertClass = data.success ? 'alert-success' : 'alert-danger';
+        document.getElementById(resultDiv).innerHTML = `<div class="alert ${alertClass}">${data.message}</div>`;
+        form.reset();
+    })
+    .catch(error => {
+        document.getElementById(resultDiv).innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
+    });
+}
+</script>
+{% endblock %}

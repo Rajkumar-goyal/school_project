@@ -1,0 +1,490 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="mb-1">Admin Dashboard</h2>
+                <p class="text-muted mb-0">Comprehensive overview of school performance and analytics</p>
+            </div>
+            
+        </div>
+        <hr>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-primary">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title text-primary">{{ total_students }}</h5>
+                        <p class="card-text">Total Students</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-users fa-2x text-primary opacity-50"></i>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <small class="text-success">
+                        <i class="fas fa-arrow-up"></i> Active this semester
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-success">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title text-success">{{ total_teachers }}</h5>
+                        <p class="card-text">Teaching Staff</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-chalkboard-teacher fa-2x text-success opacity-50"></i>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <small class="text-success">
+                        <i class="fas fa-check-circle"></i> All active
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-warning">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title text-warning">{{ total_classes }}</h5>
+                        <p class="card-text">Active Classes</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-door-open fa-2x text-warning opacity-50"></i>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <small class="text-success">
+                        <i class="fas fa-clock"></i> Current session
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-info">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title text-info">{{ total_subjects }}</h5>
+                        <p class="card-text">Subjects Offered</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-book fa-2x text-info opacity-50"></i>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <small class="text-success">
+                        <i class="fas fa-graduation-cap"></i> Curriculum
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Performance Analytics Row -->
+<div class="row mb-4">
+    <!-- Overall Performance Chart -->
+    <div class="col-xl-8 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Overall Academic Performance</h5>
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        This Semester
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="#">This Semester</a></li>
+                        <li><a class="dropdown-item" href="#">Last Semester</a></li>
+                        <li><a class="dropdown-item" href="#">This Academic Year</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row text-center mb-4">
+                    <div class="col-3">
+                        <div class="border-end">
+                            <h4 class="text-success mb-1">{{ overall_stats.average_percentage|default(0)|round(1) }}%</h4>
+                            <small class="text-muted">Average Score</small>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="border-end">
+                            <h4 class="text-primary mb-1">{{ overall_stats.total_results|default(0) }}</h4>
+                            <small class="text-muted">Results Recorded</small>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="border-end">
+                            <h4 class="text-warning mb-1">{{ overall_stats.pass_percentage|default(0)|round(1) }}%</h4>
+                            <small class="text-muted">Pass Rate</small>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <h4 class="text-info mb-1">{{ overall_stats.topper_score|default(0)|round(1) }}%</h4>
+                        <small class="text-muted">Top Score</small>
+                    </div>
+                </div>
+                {% if overall_stats.total_results and overall_stats.total_results > 0 %}
+                <div id="performanceChart" style="height: 250px;">
+                    <div class="text-center py-5">
+                        <i class="fas fa-chart-bar fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">Performance analytics available</p>
+                        <small class="text-muted">{{ overall_stats.total_results }} results analyzed</small>
+                    </div>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">No performance data available yet</p>
+                    <small class="text-muted">Results will appear here once teachers start entering marks</small>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="col-xl-4 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-3">
+                    <a href="{{ url_for('manage_students') }}" class="btn btn-outline-primary btn-lg text-start">
+                        <i class="fas fa-user-graduate me-3"></i>
+                        <div>
+                            <strong>Manage Students</strong>
+                            <br><small class="text-muted">Student Records & Information</small>
+                        </div>
+                    </a>
+                    <a href="{{ url_for('manage_users') }}" class="btn btn-outline-secondary btn-lg text-start">
+                        <i class="fas fa-users me-3"></i>
+                        <div>
+                            <strong>Manage Users</strong>
+                            <br><small class="text-muted">Teachers & Staff</small>
+                        </div>
+                    </a>
+                    <a href="{{ url_for('manage_classes') }}" class="btn btn-outline-success btn-lg text-start">
+                        <i class="fas fa-door-open me-3"></i>
+                        <div>
+                            <strong>Manage Classes</strong>
+                            <br><small class="text-muted">Classrooms & Sections</small>
+                        </div>
+                    </a>
+                    <a href="{{ url_for('manage_subjects') }}" class="btn btn-outline-warning btn-lg text-start">
+                        <i class="fas fa-book me-3"></i>
+                        <div>
+                            <strong>Manage Subjects</strong>
+                            <br><small class="text-muted">Curriculum Management</small>
+                        </div>
+                    </a>
+                    <a href="{{ url_for('upload_data') }}" class="btn btn-outline-info btn-lg text-start">
+                        <i class="fas fa-upload me-3"></i>
+                        <div>
+                            <strong>Bulk Upload</strong>
+                            <br><small class="text-muted">Import data via Excel/CSV</small>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Detailed Analytics Row -->
+<div class="row mb-4">
+    <!-- Subject-wise Performance -->
+    <div class="col-xl-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Subject-wise Performance</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover">
+                        <thead>
+                            <tr>
+                                <th>Subject</th>
+                                <th>Avg Score</th>
+                                <th>Students</th>
+                                <th>Performance</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for subject in subject_performance %}
+                            <tr>
+                                <td>
+                                    <strong>{{ subject.name }}</strong>
+                                    <br><small class="text-muted">{{ subject.code }}</small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-{{ 'success' if subject.average >= 75 else 'warning' if subject.average >= 50 else 'danger' }}">
+                                        {{ "%.1f"|format(subject.average) }}%
+                                    </span>
+                                </td>
+                                <td>{{ subject.student_count }}</td>
+                                <td>
+                                   <div class="progress" style="height: 8px;">
+                                        <div class="progress-bar 
+                                            {% if subject.average >= 75 %}bg-success
+                                            {% elif subject.average >= 50 %}bg-warning
+                                            {% else %}bg-danger{% endif %}" 
+                                            style="width: {{ subject.average }}%">
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="4" class="text-center text-muted py-3">
+                                    <i class="fas fa-chart-pie fa-2x mb-2"></i>
+                                    <p>No subject performance data available</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Class-wise Performance -->
+    <div class="col-xl-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Class-wise Performance</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover">
+                        <thead>
+                            <tr>
+                                <th>Class</th>
+                                <th>Section</th>
+                                <th>Avg %</th>
+                                <th>Students</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for class in class_performance %}
+                            <tr>
+                                <td><strong>{{ class.class_name }}</strong></td>
+                                <td>{{ class.section }}</td>
+                                <td>
+                                    <span class="badge bg-{{ 'success' if class.average >= 75 else 'warning' if class.average >= 50 else 'danger' }}">
+                                        {{ "%.1f"|format(class.average) }}%
+                                    </span>
+                                </td>
+                                <td>{{ class.student_count }}</td>
+                                <td>
+                                    {% if class.average >= 75 %}
+                                    <span class="badge bg-success">Excellent</span>
+                                    {% elif class.average >= 60 %}
+                                    <span class="badge bg-primary">Good</span>
+                                    {% elif class.average >= 50 %}
+                                    <span class="badge bg-warning">Average</span>
+                                    {% else %}
+                                    <span class="badge bg-danger">Needs Attention</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-3">
+                                    <i class="fas fa-school fa-2x mb-2"></i>
+                                    <p>No class performance data available</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activity & Top Performers -->
+<div class="row">
+    <!-- Recent Results -->
+    <div class="col-xl-8 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Recent Results</h5>
+                <a href="{{ url_for('view_all_results') }}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Student</th>
+                                <th>Subject</th>
+                                <th>Class</th>
+                                <th>Marks</th>
+                                <th>Percentage</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for result in recent_results %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-sm bg-primary rounded-circle text-white d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
+                                            {{ result.student_name[0] }}
+                                        </div>
+                                        <div>
+                                            <strong>{{ result.student_name }}</strong>
+                                            <br><small class="text-muted">{{ result.student_username }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>{{ result.subject_name }}</td>
+                                <td>{{ result.class_name }} - {{ result.section }}</td>
+                                <td>
+                                    <span class="badge bg-{{ 'success' if (result.marks_obtained/result.total_marks*100) >= 50 else 'danger' }}">
+                                        {{ result.marks_obtained }}/{{ result.total_marks }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <strong>{{ "%.1f"|format((result.marks_obtained/result.total_marks*100)) }}%</strong>
+                                </td>
+                                <td>{{ result.created_at[:10] if result.created_at else 'N/A' }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="6" class="text-center py-4">
+                                    <i class="fas fa-inbox fa-2x text-muted mb-2"></i>
+                                    <p class="text-muted">No recent results found</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Performers -->
+    <div class="col-xl-4 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Top Performers</h5>
+            </div>
+            <div class="card-body">
+                {% for performer in top_performers %}
+                <div class="d-flex align-items-center mb-3">
+                    <div class="flex-shrink-0">
+                        <div class="avatar-md bg-success rounded-circle text-white d-flex align-items-center justify-content-center">
+                            {{ performer.student_name[0] }}
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="mb-0">{{ performer.student_name }}</h6>
+                        <small class="text-muted">{{ performer.class_name }}</small>
+                        <div class="mt-1">
+                            <span class="badge bg-warning">
+                                <i class="fas fa-star me-1"></i>
+                                {{ "%.1f"|format(performer.average_percentage) }}%
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-trophy fa-2x text-muted mb-2"></i>
+                    <p class="text-muted">No top performers data available</p>
+                    <small class="text-muted">Students need at least 3 subject results</small>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.avatar-sm, .avatar-md {
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.avatar-sm {
+    width: 32px;
+    height: 32px;
+    font-size: 0.8rem;
+}
+.avatar-md {
+    width: 48px;
+    height: 48px;
+    font-size: 1.1rem;
+}
+.card {
+    border: 1px solid #e3e6f0;
+    border-radius: 0.75rem;
+}
+.card-header {
+    background-color: #f8f9fc;
+    border-bottom: 1px solid #e3e6f0;
+    padding: 1rem 1.25rem;
+}
+.progress {
+    border-radius: 10px;
+}
+.btn-lg.text-start {
+    text-align: left !important;
+    padding: 1rem 1.25rem;
+}
+</style>
+
+<script>
+// Update current time
+function updateTime() {
+    const now = new Date();
+    const timeString = now.toLocaleString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+    });
+    document.getElementById('current-time').textContent = timeString;
+}
+updateTime();
+setInterval(updateTime, 1000);
+
+// Simple chart animation for progress bars
+document.addEventListener('DOMContentLoaded', function() {
+    // Animate progress bars
+    const progressBars = document.querySelectorAll('.progress-bar');
+    progressBars.forEach(bar => {
+        const width = bar.style.width;
+        bar.style.width = '0%';
+        setTimeout(() => {
+            bar.style.transition = 'width 1s ease-in-out';
+            bar.style.width = width;
+        }, 100);
+    });
+});
+</script>
+{% endblock %}

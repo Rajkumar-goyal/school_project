@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>Enter Marks - {{ class_info.class_name }} {{ class_info.section }}</h2>
+        <hr>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Enter Student Marks</h5>
+            </div>
+            <div class="card-body">
+                <form id="enterMarksForm">
+                    <input type="hidden" name="class_id" value="{{ class_info.id }}">
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Student</label>
+                            <select class="form-select" name="student_id" required>
+                                <option value="">Select Student</option>
+                                {% for student in students %}
+                                <option value="{{ student.id }}">{{ student.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Subject</label>
+                            <select class="form-select" name="subject_id" required>
+                                <option value="">Select Subject</option>
+                                {% for subject in subjects %}
+                                <option value="{{ subject.id }}">{{ subject.subject_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Exam Type</label>
+                            <select class="form-select" name="exam_type" required>
+                                <option value="Midterm">Midterm</option>
+                                <option value="Final">Final</option>
+                                <option value="Quiz">Quiz</option>
+                                <option value="Assignment">Assignment</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Marks Obtained</label>
+                            <input type="number" step="0.01" class="form-control" name="marks_obtained" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Total Marks</label>
+                            <input type="number" step="0.01" class="form-control" name="total_marks" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Academic Year</label>
+                            <input type="text" class="form-control" name="academic_year" value="2024-2025" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-success">Submit Marks</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('enterMarksForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    
+    fetch('{{ url_for("submit_marks") }}', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Marks submitted successfully!');
+            this.reset();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    })
+    .catch(error => {
+        alert('Error submitting marks');
+    });
+});
+</script>
+{% endblock %}

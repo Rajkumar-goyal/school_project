@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Manage Results</title>
+    <style>
+        body { font-family: Arial, sans-serif; display: grid; place-items: center; min-height: 80vh; background-color: #f4f4f4; }
+        .results-box { width: 600px; background: #fff; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .form-group { display: grid; grid-template-columns: 2fr 1fr; gap: 1rem; align-items: center; margin-bottom: 1rem; }
+        .form-group label { font-weight: bold; }
+        .form-group input { width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        .btn-submit { background: #007bff; color: white; padding: 0.7rem 1.5rem; border: none; border-radius: 4px; cursor: pointer; font-size: 1rem; margin-top: 1rem; }
+        .btn-cancel { display: inline-block; text-align: center; margin-top: 1rem; margin-left: 1rem; color: #555; text-decoration: none; }
+        h1, h2 { color: #333; }
+        h2 { border-bottom: 2px solid #eee; padding-bottom: 5px; }
+    </style>
+</head>
+<body>
+    <div class="results-box">
+        <h1>Manage Results</h1>
+        <h2>Student: {{ student.first_name }} {{ student.last_name }}</h2>
+        <p><strong>Roll No:</strong> {{ student.roll_number }}</p>
+
+        <form method="POST">
+            {% for subject in subjects %}
+                <div class="form-group">
+                    <label for="marks-{{ subject.id }}">{{ subject.name }} ({{ subject.code }})</label>
+                    
+                    <input 
+                        type="number" 
+                        id="marks-{{ subject.id }}" 
+                        name="marks-{{ subject.id }}" 
+                        min="0" 
+                        max="100" 
+                        value="{{ current_results.get(subject.id, '') }}"
+                        placeholder="Enter marks">
+                </div>
+            {% else %}
+                <p>No subjects found. Please add subjects in the admin dashboard first.</p>
+            {% endfor %}
+            
+            <button type="submit" class="btn-submit">Save Results</button>
+            <a href="{{ url_for('admin_dashboard') }}" class="btn-cancel">Cancel</a>
+        </form>
+    </div>
+</body>
+</html>

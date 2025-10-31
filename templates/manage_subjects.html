@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>Manage Subjects</h2>
+        <hr>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Add New Subject</h5>
+            </div>
+            <div class="card-body">
+                <form id="addSubjectForm">
+                    <div class="row">
+                        <div class="col-md-5">
+                            <input type="text" class="form-control" name="subject_name" placeholder="Subject Name" required>
+                        </div>
+                        <div class="col-md-5">
+                            <input type="text" class="form-control" name="subject_code" placeholder="Subject Code" required>
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-success w-100">Add Subject</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">All Subjects</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <!-- Update table header -->
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Subject Name</th>
+                                <th>Subject Code</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+
+                        <!-- Update table body -->
+                        <tbody>
+                            {% for subject in subjects %}
+                            <tr>
+                                <td>{{ subject['id'] }}</td>
+                                <td>{{ subject['subject_name'] }}</td>
+                                <td>{{ subject['subject_code'] }}</td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{{ url_for('edit_subject', subject_id=subject['id']) }}" class="btn btn-outline-primary">Edit</a>
+                                        <button class="btn btn-outline-danger delete-subject" data-subject-id="{{ subject['id'] }}" data-subject-name="{{ subject['subject_name'] }}">Delete</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Delete subject functionality
+document.querySelectorAll('.delete-subject').forEach(button => {
+    button.addEventListener('click', function() {
+        const subjectId = this.getAttribute('data-subject-id');
+        const subjectName = this.getAttribute('data-subject-name');
+        
+        if (confirm(`Are you sure you want to delete subject "${subjectName}"?`)) {
+            fetch(`/admin/delete_subject/${subjectId}`, {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Subject deleted successfully!');
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(error => {
+                alert('Error deleting subject');
+            });
+        }
+    });
+});
+</script>
+{% endblock %}

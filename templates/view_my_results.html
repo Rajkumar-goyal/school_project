@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>My Results</h2>
+        <hr>
+    </div>
+</div>
+
+{% if overall_percentage > 0 %}
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card bg-light">
+            <div class="card-body text-center">
+                <h5 class="card-title">Overall Performance</h5>
+                <h2 class="display-4 {{ 'text-success' if overall_percentage >= 50 else 'text-danger' }}">
+                    {{ overall_percentage }}%
+                </h2>
+                <p class="card-text">
+                    {{ 'Good Performance!' if overall_percentage >= 50 else 'Needs Improvement' }}
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Subject-wise Results</h5>
+            </div>
+            <div class="card-body">
+                {% if results %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Subject</th>
+                                <th>Class</th>
+                                <th>Marks Obtained</th>
+                                <th>Total Marks</th>
+                                <th>Percentage</th>
+                                <th>Grade</th>
+                                <th>Exam Type</th>
+                                <th>Teacher</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for result in results %}
+                            {% set percentage = (result['marks_obtained'] / result['total_marks'] * 100) %}
+                            <tr>
+                                <td>{{ result['subject_name'] }}</td>
+                                <td>{{ result['class_name'] }}</td>
+                                <td>{{ result['marks_obtained'] }}</td>
+                                <td>{{ result['total_marks'] }}</td>
+                                <td>{{ "%.2f"|format(percentage) }}%</td>
+                                <td>
+                                    {% if percentage >= 90 %}
+                                    <span class="badge bg-success">A+</span>
+                                    {% elif percentage >= 75 %}
+                                    <span class="badge bg-success">A</span>
+                                    {% elif percentage >= 60 %}
+                                    <span class="badge bg-primary">B</span>
+                                    {% elif percentage >= 50 %}
+                                    <span class="badge bg-info">C</span>
+                                    {% elif percentage >= 33 %}
+                                    <span class="badge bg-warning">D</span>
+                                    {% else %}
+                                    <span class="badge bg-danger">F</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ result['exam_type'] }}</td>
+                                <td>{{ result['teacher_name'] }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted">No results found for you yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

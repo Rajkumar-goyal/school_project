@@ -1,0 +1,401 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>Manage Students</h2>
+        <hr>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Add New Student</h5>
+            </div>
+            <div class="card-body">
+                <form id="addStudentForm">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <input type="text" class="form-control" name="full_name" placeholder="Full Name" required>
+                        </div>
+                        <div class="col-md-2 mb-3">
+                            <select class="form-select" name="gender" required>
+                                <option value="">Select Gender</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2 mb-3">
+                            <input type="date" class="form-control" name="date_of_birth" required>
+                        </div>
+                        <div class="col-md-2 mb-3">
+                            <select class="form-select" name="class_id" required>
+                                <option value="">Select Class</option>
+                                {% for class in classes %}
+                                <option value="{{ class.id }}">{{ class.class_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-1 mb-3">
+                            <input type="number" class="form-control" name="roll_number" placeholder="Roll No" required min="1">
+                        </div>
+                        <div class="col-md-2 mb-3">
+                            <input type="tel" class="form-control" name="mobile_number" placeholder="Mobile Number">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-5 mb-3">
+                            <input type="text" class="form-control" name="fathers_name" placeholder="Father's Name" required>
+                        </div>
+                        <div class="col-md-5 mb-3">
+                            <input type="text" class="form-control" name="mothers_name" placeholder="Mother's Name" required>
+                        </div>
+                        <div class="col-md-2 mb-3">
+                            <button type="submit" class="btn btn-success w-100">Add Student</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Search Students</h5>
+            </div>
+            <div class="card-body">
+                <form id="searchForm">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="searchQuery" 
+                                       placeholder="Search by student name, ID, or father's name...">
+                                <button class="btn btn-outline-primary" type="submit">
+                                    <i class="fas fa-search"></i> Search
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <button class="btn btn-outline-secondary w-100" type="button" id="resetSearch">
+                                <i class="fas fa-refresh me-2"></i>Show All Students
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">All Students</h5>
+                <span class="badge bg-primary">{{ students|length }} students</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Student ID</th>
+                                <th>Full Name</th>
+                                <th>Gender</th>
+                                <th>Date of Birth</th>
+                                <th>Class & Section</th>
+                                <th>Roll No.</th>
+                                <th>Father's Name</th>
+                                <th>Mobile</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentsTableBody">
+                            {% for student in students %}
+                            <tr>
+                                <td>
+                                    <strong class="text-primary">{{ student.student_id }}</strong>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-sm bg-primary rounded-circle text-white d-flex align-items-center justify-content-center me-2">
+                                            {{ student.full_name[0] if student.full_name else '?' }}
+                                        </div>
+                                        <div>
+                                            <strong>{{ student.full_name }}</strong>
+                                            {% if student.mothers_name %}
+                                            <br><small class="text-muted">Mother: {{ student.mothers_name }}</small>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-{{ 'info' if student.gender == 'Male' else 'warning' if student.gender == 'Female' else 'secondary' }}">
+                                        {{ student.gender }}
+                                    </span>
+                                </td>
+                                <td>{{ student.date_of_birth or 'N/A' }}</td>
+                                <td>
+                                    <strong>{{ student.class_name or 'N/A' }}</strong>
+                                    {% if student.section %}
+                                    <br><small class="text-muted">Section: {{ student.section }}</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge bg-dark">{{ student.roll_number }}</span>
+                                </td>
+                                <td>{{ student.fathers_name or 'N/A' }}</td>
+                                <td>
+                                    {% if student.mobile_number %}
+                                    <a href="tel:{{ student.mobile_number }}" class="text-decoration-none">
+                                        {{ student.mobile_number }}
+                                    </a>
+                                    {% else %}
+                                    <span class="text-muted">N/A</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{{ url_for('edit_student', student_id=student.id) }}" 
+                                           class="btn btn-outline-primary" title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button class="btn btn-outline-danger delete-student" 
+                                                data-student-id="{{ student.id }}" 
+                                                data-student-name="{{ student.full_name }}"
+                                                title="Delete">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="9" class="text-center py-4">
+                                    <i class="fas fa-users fa-2x text-muted mb-2"></i>
+                                    <p class="text-muted">No students found. Add students using the form above.</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.avatar-sm {
+    width: 32px;
+    height: 32px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+</style>
+
+<script>
+// Add Student Form Submission
+document.getElementById('addStudentForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const submitButton = this.querySelector('button[type="submit"]');
+    const originalText = submitButton.textContent;
+    
+    // Show loading state
+    submitButton.disabled = true;
+    submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding...';
+    
+    fetch('{{ url_for("add_student") }}', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Student added successfully! Student ID: ' + data.student_id);
+            this.reset();
+            location.reload();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    })
+    .catch(error => {
+        alert('Error adding student: ' + error);
+    })
+    .finally(() => {
+        // Reset button state
+        submitButton.disabled = false;
+        submitButton.textContent = originalText;
+    });
+});
+
+// Search Students
+document.getElementById('searchForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const query = document.getElementById('searchQuery').value.trim();
+    
+    if (query.length === 0) {
+        alert('Please enter a search term');
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('query', query);
+    
+    fetch('{{ url_for("search_students") }}', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            updateStudentsTable(data.students);
+        } else {
+            alert('Search failed: ' + data.message);
+        }
+    })
+    .catch(error => {
+        alert('Search error: ' + error);
+    });
+});
+
+// Reset Search
+document.getElementById('resetSearch').addEventListener('click', function() {
+    document.getElementById('searchQuery').value = '';
+    location.reload();
+});
+
+// Delete Student
+document.querySelectorAll('.delete-student').forEach(button => {
+    button.addEventListener('click', function() {
+        const studentId = this.getAttribute('data-student-id');
+        const studentName = this.getAttribute('data-student-name');
+        
+        if (confirm(`Are you sure you want to delete student "${studentName}"? This action cannot be undone.`)) {
+            fetch(`/admin/delete_student/${studentId}`, {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Student deleted successfully!');
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(error => {
+                alert('Error deleting student: ' + error);
+            });
+        }
+    });
+});
+
+function updateStudentsTable(students) {
+    const tbody = document.getElementById('studentsTableBody');
+    
+    if (students.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="9" class="text-center py-4">
+                    <i class="fas fa-search fa-2x text-muted mb-2"></i>
+                    <p class="text-muted">No students found matching your search</p>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    let html = '';
+    students.forEach(student => {
+        html += `
+            <tr>
+                <td><strong class="text-primary">${student.student_id}</strong></td>
+                <td>
+                    <div class="d-flex align-items-center">
+                        <div class="avatar-sm bg-primary rounded-circle text-white d-flex align-items-center justify-content-center me-2">
+                            ${student.full_name[0]}
+                        </div>
+                        <div>
+                            <strong>${student.full_name}</strong>
+                            ${student.mothers_name ? `<br><small class="text-muted">Mother: ${student.mothers_name}</small>` : ''}
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <span class="badge bg-${student.gender === 'Male' ? 'info' : student.gender === 'Female' ? 'warning' : 'secondary'}">
+                        ${student.gender}
+                    </span>
+                </td>
+                <td>${student.date_of_birth}</td>
+                <td>
+                    <strong>${student.class_name}</strong>
+                    ${student.section ? `<br><small class="text-muted">Section: ${student.section}</small>` : ''}
+                </td>
+                <td><span class="badge bg-dark">${student.roll_number}</span></td>
+                <td>${student.fathers_name}</td>
+                <td>
+                    ${student.mobile_number ? 
+                        `<a href="tel:${student.mobile_number}" class="text-decoration-none">${student.mobile_number}</a>` : 
+                        `<span class="text-muted">N/A</span>`}
+                </td>
+                <td>
+                    <div class="btn-group btn-group-sm">
+                        <a href="/admin/edit_student/${student.id}" class="btn btn-outline-primary" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <button class="btn btn-outline-danger delete-student" 
+                                data-student-id="${student.id}" 
+                                data-student-name="${student.full_name}"
+                                title="Delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    });
+    
+    tbody.innerHTML = html;
+    
+    // Re-attach delete event listeners to new buttons
+    document.querySelectorAll('.delete-student').forEach(button => {
+        button.addEventListener('click', function() {
+            const studentId = this.getAttribute('data-student-id');
+            const studentName = this.getAttribute('data-student-name');
+            
+            if (confirm(`Are you sure you want to delete student "${studentName}"? This action cannot be undone.`)) {
+                fetch(`/admin/delete_student/${studentId}`, {
+                    method: 'POST'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Student deleted successfully!');
+                        location.reload();
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    alert('Error deleting student: ' + error);
+                });
+            }
+        });
+    });
+}
+</script>
+{% endblock %}
+
+
