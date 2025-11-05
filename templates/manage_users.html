@@ -5,8 +5,8 @@
     <div class="col-12">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
-                <h2 class="mb-1">User Management</h2>
-                <p class="text-muted mb-0">Manage system users and their roles</p>
+                <h2 class="mb-1">User & Student Management</h2>
+                <p class="text-muted mb-0">Manage all system users (Admins, Teachers, and Students)</p>
             </div>
             <div>
                 <a href="{{ url_for('upload_data') }}" class="btn btn-outline-primary">
@@ -29,31 +29,77 @@
                     <div class="row g-3">
                         <div class="col-md-3">
                             <label class="form-label">Username *</label>
-                            <input type="text" class="form-control" name="username" placeholder="Username" required>
+                            <input type="text" class="form-control" name="username" placeholder="Login Username" required>
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-md-3">
                             <label class="form-label">Password *</label>
                             <input type="password" class="form-control" name="password" placeholder="Password" required>
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-md-3">
+                            <label class="form-label">Full Name *</label>
+                            <input type="text" class="form-control" name="name" placeholder="Full Name" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" name="email" placeholder="Email">
+                        </div>
+                        <div class="col-md-3">
                             <label class="form-label">Role *</label>
-                            <select class="form-select" name="role" required>
+                            <select class="form-select" name="role" id="roleSelect" required>
                                 <option value="">Select Role</option>
                                 <option value="admin">Admin</option>
                                 <option value="teacher">Teacher</option>
                                 <option value="student">Student</option>
                             </select>
                         </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Full Name *</label>
-                            <input type="text" class="form-control" name="name" placeholder="Full Name" required>
-                        </div>
-                        <div class="col-md-2">
-                            <label class="form-label">Email</label>
-                            <input type="email" class="form-control" name="email" placeholder="Email">
+                    </div>
+
+                    <div id="studentDetails" class="d-none mt-4">
+                        <hr>
+                        <h6 class="text-primary">Student Profile Details</h6>
+                        <div class="row g-3 mt-2">
+                            <div class="col-md-3">
+                                <label class="form-label">Class *</label>
+                                <select class="form-select" name="class_id">
+                                    <option value="">Select Class</option>
+                                    {% for class in classes %}
+                                    <option value="{{ class.id }}">{{ class.class_name }} - {{ class.section }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">Roll Number *</label>
+                                <input type="number" class="form-control" name="roll_number" placeholder="Roll No">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">Gender</label>
+                                <select class="form-select" name="gender">
+                                    <option value="">Select Gender</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">Date of Birth</label>
+                                <input type="date" class="form-control" name="date_of_birth">
+                            </div>
+                             <div class="col-md-3">
+                                <label class="form-label">Mobile Number</label>
+                                <input type="tel" class="form-control" name="mobile_number" placeholder="Mobile Number">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Father's Name</label>
+                                <input type="text" class="form-control" name="fathers_name" placeholder="Father's Name">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Mother's Name</label>
+                                <input type="text" class="form-control" name="mothers_name" placeholder="Mother's Name">
+                            </div>
                         </div>
                     </div>
-                    <div class="row mt-3">
+
+                    <div class="row mt-4">
                         <div class="col-12">
                             <button type="submit" class="btn btn-success">
                                 <i class="fas fa-plus me-2"></i>Add User
@@ -81,8 +127,9 @@
                                 <th>ID</th>
                                 <th>Username</th>
                                 <th>Name</th>
-                                <th>Email</th>
                                 <th>Role</th>
+                                <th>Class & Roll No.</th>
+                                <th>Email</th>
                                 <th>Created At</th>
                                 <th>Actions</th>
                             </tr>
@@ -98,12 +145,20 @@
                                     {% endif %}
                                 </td>
                                 <td>{{ user['name'] }}</td>
-                                <td>{{ user['email'] or 'N/A' }}</td>
                                 <td>
                                     <span class="badge bg-{{ 'danger' if user['role'] == 'admin' else 'success' if user['role'] == 'teacher' else 'info' }}">
                                         {{ user['role']|title }}
                                     </span>
                                 </td>
+                                <td>
+                                    {% if user['role'] == 'student' %}
+                                        <strong>{{ user.class_name or 'N/A' }} - {{ user.section or 'N/A' }}</strong>
+                                        <br><small class="text-muted">Roll: {{ user.roll_number or 'N/A' }}</small>
+                                    {% else %}
+                                        <span class="text-muted">N/A</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ user['email'] or 'N/A' }}</td>
                                 <td>{{ user['created_at'] }}</td>
                                 <td>
                                     <div class="btn-group btn-group-sm">
@@ -124,7 +179,7 @@
                             </tr>
                             {% else %}
                             <tr>
-                                <td colspan="7" class="text-center py-4">
+                                <td colspan="8" class="text-center py-4">
                                     <i class="fas fa-users fa-2x text-muted mb-2"></i>
                                     <p class="text-muted">No users found</p>
                                 </td>
@@ -140,6 +195,29 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Show/hide student fields based on role
+    const roleSelect = document.getElementById('roleSelect');
+    const studentDetails = document.getElementById('studentDetails');
+    const studentInputs = studentDetails.querySelectorAll('input, select');
+
+    if (roleSelect) {
+        roleSelect.addEventListener('change', function() {
+            if (this.value === 'student') {
+                studentDetails.classList.remove('d-none');
+                studentInputs.forEach(input => input.required = true);
+                // Make non-essential fields optional
+                studentDetails.querySelector('input[name="mobile_number"]').required = false;
+                studentDetails.querySelector('input[name="fathers_name"]').required = false;
+                studentDetails.querySelector('input[name="mothers_name"]').required = false;
+                studentDetails.querySelector('select[name="gender"]').required = false;
+                studentDetails.querySelector('input[name="date_of_birth"]').required = false;
+            } else {
+                studentDetails.classList.add('d-none');
+                studentInputs.forEach(input => input.required = false);
+            }
+        });
+    }
+
     // Add User Form Submission
     const addUserForm = document.getElementById('addUserForm');
     if (addUserForm) {
@@ -150,7 +228,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const submitButton = this.querySelector('button[type="submit"]');
             const originalText = submitButton.textContent;
 
-            // Show loading state
             submitButton.disabled = true;
             submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding...';
 
@@ -158,27 +235,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 method: 'POST',
                 body: formData
             })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.json();
-            })
+            .then(response => response.json())
             .then(data => {
                 if (data.success) {
                     alert('User added successfully!');
                     this.reset();
+                    studentDetails.classList.add('d-none'); // Hide student fields again
                     location.reload();
                 } else {
                     throw new Error(data.message || 'Failed to add user');
                 }
             })
             .catch(error => {
-                console.error('Error:', error);
                 alert('Error adding user: ' + error.message);
             })
             .finally(() => {
-                // Reset button state
                 submitButton.disabled = false;
                 submitButton.textContent = originalText;
             });
@@ -191,14 +262,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const userId = this.getAttribute('data-user-id');
             const userName = this.getAttribute('data-user-name');
             
-            if (confirm(`Are you sure you want to delete user "${userName}"? This action cannot be undone.`)) {
-                const originalButton = this;
-                const originalHTML = originalButton.innerHTML;
+            if (confirm(`Are you sure you want to delete user "${userName}"? This will also delete all their results and profile information. This action cannot be undone.`)) {
                 
-                // Show loading state
-                originalButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-                originalButton.disabled = true;
-
                 fetch(`/admin/delete_user/${userId}`, {
                     method: 'POST'
                 })
@@ -206,23 +271,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 .then(data => {
                     if (data.success) {
                         alert('User deleted successfully!');
-                        // Remove the row from table
-                        const row = document.getElementById('user-row-' + userId);
-                        if (row) {
-                            row.remove();
-                        } else {
-                            location.reload();
-                        }
+                        location.reload();
                     } else {
                         throw new Error(data.message || 'Failed to delete user');
                     }
                 })
                 .catch(error => {
-                    console.error('Delete error:', error);
                     alert('Error deleting user: ' + error.message);
-                    // Restore button
-                    originalButton.innerHTML = originalHTML;
-                    originalButton.disabled = false;
                 });
             }
         });

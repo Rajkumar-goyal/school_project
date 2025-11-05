@@ -3,67 +3,69 @@
 {% block content %}
 <div class="row">
     <div class="col-12">
-        <h2>Enter Marks - {{ class_info.class_name }} {{ class_info.section }}</h2>
+        <h2>Enter Marks for: {{ class_info.class_name }} - {{ class_info.section }}</h2>
         <hr>
     </div>
 </div>
 
 <div class="row">
-    <div class="col-12">
+    <div class="col-md-8 offset-md-2">
         <div class="card">
             <div class="card-header">
-                <h5 class="card-title mb-0">Enter Student Marks</h5>
+                <h5 class="card-title mb-0">New Result Entry</h5>
             </div>
             <div class="card-body">
                 <form id="enterMarksForm">
                     <input type="hidden" name="class_id" value="{{ class_info.id }}">
-                    <div class="row mb-3">
-                        <div class="col-md-4">
-                            <label class="form-label">Student</label>
-                            <select class="form-select" name="student_id" required>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="student_id" class="form-label">Student</label>
+                            <select class="form-select" id="student_id" name="student_id" required>
                                 <option value="">Select Student</option>
                                 {% for student in students %}
                                 <option value="{{ student.id }}">{{ student.name }}</option>
                                 {% endfor %}
                             </select>
                         </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Subject</label>
-                            <select class="form-select" name="subject_id" required>
+                        <div class="col-md-6 mb-3">
+                            <label for="subject_id" class="form-label">Subject</label>
+                            <select class="form-select" id="subject_id" name="subject_id" required>
                                 <option value="">Select Subject</option>
                                 {% for subject in subjects %}
                                 <option value="{{ subject.id }}">{{ subject.subject_name }}</option>
+                                {% else %}
+                                <option value="" disabled>You are not assigned to teach any subjects for this class.</option>
                                 {% endfor %}
                             </select>
                         </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Exam Type</label>
-                            <select class="form-select" name="exam_type" required>
-                                <option value="Midterm">Midterm</option>
-                                <option value="Final">Final</option>
-                                <option value="Quiz">Quiz</option>
-                                <option value="Assignment">Assignment</option>
-                            </select>
-                        </div>
                     </div>
-                    <div class="row mb-3">
-                        <div class="col-md-4">
-                            <label class="form-label">Marks Obtained</label>
-                            <input type="number" step="0.01" class="form-control" name="marks_obtained" required>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Total Marks</label>
-                            <input type="number" step="0.01" class="form-control" name="total_marks" required>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Academic Year</label>
-                            <input type="text" class="form-control" name="academic_year" value="2024-2025" required>
-                        </div>
-                    </div>
+                    
                     <div class="row">
-                        <div class="col-12">
-                            <button type="submit" class="btn btn-success">Submit Marks</button>
+                        <div class="col-md-6 mb-3">
+                            <label for="marks_obtained" class="form-label">Marks Obtained</label>
+                            <input type="number" step="0.01" class="form-control" id="marks_obtained" name="marks_obtained" required>
                         </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="total_marks" class="form-label">Total Marks</label>
+                            <input type="number" step="0.01" class="form-control" id="total_marks" name="total_marks" required>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="exam_type" class="form-label">Exam Type</label>
+                            <input type="text" class="form-control" id="exam_type" name="exam_type" placeholder="e.g., Term 1, Final" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="academic_year" class="form-label">Academic Year</label>
+                            <input type="text" class="form-control" id="academic_year" name="academic_year" placeholder="e.g., 2025-2026" required>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex gap-2 mt-3">
+                        <button type="submit" class="btn btn-primary">Submit Marks</button>
+                        <a href="{{ url_for('teacher_dashboard') }}" class="btn btn-secondary">Cancel</a>
                     </div>
                 </form>
             </div>
@@ -71,11 +73,19 @@
     </div>
 </div>
 
+{% endblock %}
+
+{% block scripts %}
 <script>
 document.getElementById('enterMarksForm').addEventListener('submit', function(e) {
     e.preventDefault();
     
     const formData = new FormData(this);
+    const submitButton = this.querySelector('button[type="submit"]');
+    const originalText = submitButton.innerHTML;
+    
+    submitButton.disabled = true;
+    submitButton.innerHTML = '<span class="loading-spinner me-2"></span>Submitting...';
     
     fetch('{{ url_for("submit_marks") }}', {
         method: 'POST',
@@ -84,14 +94,18 @@ document.getElementById('enterMarksForm').addEventListener('submit', function(e)
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert('Marks submitted successfully!');
-            this.reset();
+            // Flash message will be shown on reload
+            window.location.reload();
         } else {
             alert('Error: ' + data.message);
+            submitButton.disabled = false;
+            submitButton.innerHTML = originalText;
         }
     })
     .catch(error => {
-        alert('Error submitting marks');
+        alert('Error submitting marks: ' + error);
+        submitButton.disabled = false;
+        submitButton.innerHTML = originalText;
     });
 });
 </script>

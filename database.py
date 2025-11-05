@@ -7,7 +7,7 @@ def init_db():
     conn = sqlite3.connect('school_results.db')
     cursor = conn.cursor()
     
-    # Users table
+    # ... (users, classes, subjects tables are the same) ...
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -19,19 +19,16 @@ def init_db():
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
-    
-    # Classes table
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS classes (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            class_name TEXT NOT NULL UNIQUE,
+            class_name TEXT NOT NULL,
             section TEXT,
             teacher_id INTEGER,
-            FOREIGN KEY (teacher_id) REFERENCES users (id)
+            FOREIGN KEY (teacher_id) REFERENCES users (id),
+            UNIQUE(class_name, section)
         )
     ''')
-    
-    # Subjects table
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS subjects (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -40,7 +37,7 @@ def init_db():
         )
     ''')
     
-    # Class-Subjects relationship table
+    # ... (class_subjects, student_enrollment, results, students tables are the same) ...
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS class_subjects (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -53,8 +50,6 @@ def init_db():
             UNIQUE(class_id, subject_id)
         )
     ''')
-    
-    # Student enrollment table
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS student_enrollment (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -66,8 +61,6 @@ def init_db():
             UNIQUE(student_id, class_id, academic_year)
         )
     ''')
-    
-    # Results table
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS results (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -87,11 +80,10 @@ def init_db():
             FOREIGN KEY (teacher_id) REFERENCES users (id)
         )
     ''')
-    
-    # Students table with detailed information
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS students (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER UNIQUE NOT NULL,
             student_id TEXT UNIQUE NOT NULL,
             full_name TEXT NOT NULL,
             gender TEXT NOT NULL CHECK(gender IN ('Male', 'Female', 'Other')),
@@ -104,11 +96,27 @@ def init_db():
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (class_id) REFERENCES classes (id),
+            FOREIGN KEY (user_id) REFERENCES users (id),
             UNIQUE(class_id, roll_number)
         )
     ''')
     
-    # Insert ONLY admin user if not exists
+    #
+    # >>> NEW TABLE: Teacher Subject Assignments <<<
+    # This table links teachers to the subjects they are allowed to teach.
+    #
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS teacher_subject_assignments (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            teacher_id INTEGER NOT NULL,
+            subject_id INTEGER NOT NULL,
+            FOREIGN KEY (teacher_id) REFERENCES users (id),
+            FOREIGN KEY (subject_id) REFERENCES subjects (id),
+            UNIQUE(teacher_id, subject_id)
+        )
+    ''')
+    
+    # ... (admin user creation is the same) ...
     hashed_password = generate_password_hash('admin123')
     cursor.execute('''
         INSERT OR IGNORE INTO users (username, password, role, name, email)

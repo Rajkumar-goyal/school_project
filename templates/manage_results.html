@@ -1,47 +1,111 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Manage Results</title>
-    <style>
-        body { font-family: Arial, sans-serif; display: grid; place-items: center; min-height: 80vh; background-color: #f4f4f4; }
-        .results-box { width: 600px; background: #fff; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .form-group { display: grid; grid-template-columns: 2fr 1fr; gap: 1rem; align-items: center; margin-bottom: 1rem; }
-        .form-group label { font-weight: bold; }
-        .form-group input { width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-        .btn-submit { background: #007bff; color: white; padding: 0.7rem 1.5rem; border: none; border-radius: 4px; cursor: pointer; font-size: 1rem; margin-top: 1rem; }
-        .btn-cancel { display: inline-block; text-align: center; margin-top: 1rem; margin-left: 1rem; color: #555; text-decoration: none; }
-        h1, h2 { color: #333; }
-        h2 { border-bottom: 2px solid #eee; padding-bottom: 5px; }
-    </style>
-</head>
-<body>
-    <div class="results-box">
-        <h1>Manage Results</h1>
-        <h2>Student: {{ student.first_name }} {{ student.last_name }}</h2>
-        <p><strong>Roll No:</strong> {{ student.roll_number }}</p>
+{% extends "base.html" %}
 
-        <form method="POST">
-            {% for subject in subjects %}
-                <div class="form-group">
-                    <label for="marks-{{ subject.id }}">{{ subject.name }} ({{ subject.code }})</label>
-                    
-                    <input 
-                        type="number" 
-                        id="marks-{{ subject.id }}" 
-                        name="marks-{{ subject.id }}" 
-                        min="0" 
-                        max="100" 
-                        value="{{ current_results.get(subject.id, '') }}"
-                        placeholder="Enter marks">
-                </div>
-            {% else %}
-                <p>No subjects found. Please add subjects in the admin dashboard first.</p>
-            {% endfor %}
-            
-            <button type="submit" class="btn-submit">Save Results</button>
-            <a href="{{ url_for('admin_dashboard') }}" class="btn-cancel">Cancel</a>
-        </form>
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>{{ title }}</h2>
+        <hr>
     </div>
-</body>
-</html>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Student</th>
+                                <th>Class</th>
+                                <th>Subject</th>
+                                <th>Exam</th>
+                                <th>Score</th>
+                                <th>Percentage</th>
+                                {% if user_role == 'admin' %}
+                                <th>Entered by</th>
+                                {% endif %}
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for result in results %}
+                            <tr>
+                                <td>{{ result.student_name }}</td>
+                                <td>{{ result.class_name }} - {{ result.section }}</td>
+                                <td>{{ result.subject_name }}</td>
+                                <td>{{ result.exam_type }}</td>
+                                <td>{{ result.marks_obtained }} / {{ result.total_marks }}</td>
+                                <td>
+                                    <span class="badge bg-{{ 'success' if result.percentage >= 50 else 'danger' }}">
+                                        {{ "%.2f"|format(result.percentage) }}%
+                                    </span>
+                                </td>
+                                {% if user_role == 'admin' %}
+                                <td>{{ result.teacher_name }}</td>
+                                {% endif %}
+                                <td>
+                                    {% if user_role == 'admin' or result.teacher_id == current_user.id %}
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{{ url_for('edit_result', result_id=result.id) }}" 
+                                           class="btn btn-outline-primary" title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button class="btn btn-outline-danger delete-result" 
+                                                data-result-id="{{ result.id }}" 
+                                                data-student-name="{{ result.student_name }}"
+                                                title="Delete">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                    {% else %}
+                                    <span class="text-muted" title="You can only edit/delete results you entered.">
+                                        <i class="fas fa-lock"></i>
+                                    </span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="8" class="text-center text-muted p-4">
+                                    No results found.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Delete Result
+document.querySelectorAll('.delete-result').forEach(button => {
+    button.addEventListener('click', function() {
+        const resultId = this.getAttribute('data-result-id');
+        const studentName = this.getAttribute('data-student-name');
+        
+        if (confirm(`Are you sure you want to delete this result for ${studentName}? This action cannot be undone.`)) {
+            fetch(`/delete_result/${resultId}`, {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(error => {
+                alert('Error deleting result: ' + error);
+            });
+        }
+    });
+});
+</script>
+{% endblock %}

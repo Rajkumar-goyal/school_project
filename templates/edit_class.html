@@ -3,13 +3,13 @@
 {% block content %}
 <div class="row">
     <div class="col-12">
-        <h2>Edit Class</h2>
+        <h2>Edit Class: {{ class_data.class_name }} - {{ class_data.section }}</h2>
         <hr>
     </div>
 </div>
 
 <div class="row">
-    <div class="col-md-6">
+    <div class="col-md-8 offset-md-2">
         <div class="card">
             <div class="card-header">
                 <h5 class="card-title mb-0">Edit Class Details</h5>
@@ -17,14 +17,18 @@
             <div class="card-body">
                 <form id="editClassForm">
                     <input type="hidden" name="class_id" value="{{ class_data.id }}">
-                    <div class="mb-3">
-                        <label for="class_name" class="form-label">Class Name</label>
-                        <input type="text" class="form-control" id="class_name" name="class_name" value="{{ class_data.class_name }}" required>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="class_name" class="form-label">Class Name</label>
+                            <input type="text" class="form-control" id="class_name" name="class_name" value="{{ class_data.class_name }}" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="section" class="form-label">Section</label>
+                            <input type="text" class="form-control" id="section" name="section" value="{{ class_data.section }}" required>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label for="section" class="form-label">Section</label>
-                        <input type="text" class="form-control" id="section" name="section" value="{{ class_data.section }}" required>
-                    </div>
+
                     <div class="mb-3">
                         <label for="teacher_id" class="form-label">Teacher</label>
                         <select class="form-select" id="teacher_id" name="teacher_id" required>
@@ -36,7 +40,34 @@
                             {% endfor %}
                         </select>
                     </div>
-                    <div class="d-flex gap-2">
+
+                    <div class="mb-3">
+                        <label class="form-label">Assign Subjects</label>
+                        <div class="subject-checklist border rounded p-3" style="max-height: 300px; overflow-y: auto;">
+                            <div class="row">
+                                {% for subject in all_subjects %}
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" 
+                                               type="checkbox" 
+                                               name="subjects" 
+                                               value="{{ subject.id }}" 
+                                               id="subject-{{ subject.id }}"
+                                               {% if subject.id in subjects_in_class_ids %}checked{% endif %}>
+                                        
+                                        <label class="form-check-label" for="subject-{{ subject.id }}">
+                                            {{ subject.subject_name }} ({{ subject.subject_code }})
+                                        </label>
+                                    </div>
+                                </div>
+                                {% else %}
+                                <p class="text-muted">No subjects found in master list.</p>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2 mt-3">
                         <button type="submit" class="btn btn-primary">Update Class</button>
                         <a href="{{ url_for('manage_classes') }}" class="btn btn-secondary">Cancel</a>
                     </div>
@@ -46,6 +77,9 @@
     </div>
 </div>
 
+{% endblock %}
+
+{% block scripts %}
 <script>
 document.getElementById('editClassForm').addEventListener('submit', function(e) {
     e.preventDefault();
@@ -59,14 +93,13 @@ document.getElementById('editClassForm').addEventListener('submit', function(e) 
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert('Class updated successfully!');
             window.location.href = '{{ url_for("manage_classes") }}';
         } else {
             alert('Error: ' + data.message);
         }
     })
     .catch(error => {
-        alert('Error updating class');
+        alert('Error updating class: ' + error);
     });
 });
 </script>

@@ -3,472 +3,139 @@
 {% block content %}
 <div class="row">
     <div class="col-12">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <div>
-                <h2 class="mb-1">Teacher Dashboard</h2>
-                <p class="text-muted mb-0">Welcome, {{ current_user.name }}! Manage your classes and student results.</p>
-            </div>
-            
-        </div>
-        <hr>
+        <h2 class="mb-4">Teacher Dashboard</h2>
     </div>
 </div>
 
-<!-- Statistics Cards -->
-<div class="row mb-4">
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-primary">
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 shadow-sm border-primary">
             <div class="card-body">
-                <div class="d-flex justify-content-between">
+                <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <h5 class="card-title text-primary">{{ classes|length }}</h5>
-                        <p class="card-text">Total Classes</p>
+                        <h6 class="text-muted text-uppercase mb-2">Total Students Taught</h6>
+                        <h2 class="display-6 fw-bold mb-0">{{ total_students }}</h2>
                     </div>
-                    <div class="align-self-center">
-                        <i class="fas fa-door-open fa-2x text-primary opacity-50"></i>
-                    </div>
-                </div>
-                <div class="mt-2">
-                    <small class="text-success">
-                        <i class="fas fa-check-circle"></i> Active classes
-                    </small>
+                    <i class="fas fa-user-graduate fa-3x text-primary opacity-50"></i>
                 </div>
             </div>
         </div>
     </div>
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-success">
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 shadow-sm border-success">
             <div class="card-body">
-                <div class="d-flex justify-content-between">
+                <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <h5 class="card-title text-success">{{ total_students }}</h5>
-                        <p class="card-text">Total Students</p>
+                        <h6 class="text-muted text-uppercase mb-2">Subjects Taught</h6>
+                        <h2 class="display-6 fw-bold mb-0">{{ subjects_taught|length }}</h2>
                     </div>
-                    <div class="align-self-center">
-                        <i class="fas fa-users fa-2x text-success opacity-50"></i>
-                    </div>
-                </div>
-                <div class="mt-2">
-                    <small class="text-success">
-                        <i class="fas fa-user-graduate"></i> Enrolled students
-                    </small>
+                    <i class="fas fa-book fa-3x text-success opacity-50"></i>
                 </div>
             </div>
         </div>
     </div>
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-warning">
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 shadow-sm border-info">
             <div class="card-body">
-                <div class="d-flex justify-content-between">
+                <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <h5 class="card-title text-warning">{{ total_results }}</h5>
-                        <p class="card-text">Results Entered</p>
+                        <h6 class="text-muted text-uppercase mb-2">Results Entered</h6>
+                        <h2 class="display-6 fw-bold mb-0">{{ total_results }}</h2>
                     </div>
-                    <div class="align-self-center">
-                        <i class="fas fa-chart-bar fa-2x text-warning opacity-50"></i>
-                    </div>
-                </div>
-                <div class="mt-2">
-                    <small class="text-success">
-                        <i class="fas fa-tasks"></i> This semester
-                    </small>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-info">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h5 class="card-title text-info">{{ recent_activity }}</h5>
-                        <p class="card-text">Recent Activity</p>
-                    </div>
-                    <div class="align-self-center">
-                        <i class="fas fa-clock fa-2x text-info opacity-50"></i>
-                    </div>
-                </div>
-                <div class="mt-2">
-                    <small class="text-success">
-                        <i class="fas fa-sync-alt"></i> Last 7 days
-                    </small>
+                    <i class="fas fa-marker fa-3x text-info opacity-50"></i>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Quick Actions -->
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="card">
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="card shadow-sm">
             <div class="card-header">
-                <h5 class="card-title mb-0">Quick Actions</h5>
+                <h5 class="card-title mb-0">Manage Marks by Subject</h5>
             </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-xl-3 col-md-6 mb-3">
-                        <a href="{{ url_for('teacher_upload_results') }}" class="btn btn-outline-primary btn-lg w-100 text-start">
-                            <i class="fas fa-upload me-3"></i>
-                            <div>
-                                <strong>Upload Results</strong>
-                                <br><small class="text-muted">Via Excel/CSV</small>
-                            </div>
-                        </a>
-                    </div>
-                    <div class="col-xl-3 col-md-6 mb-3">
-                        <a href="{{ url_for('download_template', template_type='results') }}" class="btn btn-outline-secondary btn-lg w-100 text-start">
-                            <i class="fas fa-download me-3"></i>
-                            <div>
-                                <strong>Download Template</strong>
-                                <br><small class="text-muted">Results template</small>
-                            </div>
-                        </a>
-                    </div>
-                    <div class="col-xl-3 col-md-6 mb-3">
-                        <a href="#classes-section" class="btn btn-outline-success btn-lg w-100 text-start">
-                            <i class="fas fa-users me-3"></i>
-                            <div>
-                                <strong>Manage Classes</strong>
-                                <br><small class="text-muted">View all classes</small>
-                            </div>
-                        </a>
-                    </div>
-                    <div class="col-xl-3 col-md-6 mb-3">
-                        <a href="{{ url_for('view_all_results') }}" class="btn btn-outline-info btn-lg w-100 text-start">
-                            <i class="fas fa-chart-bar me-3"></i>
-                            <div>
-                                <strong>View All Results</strong>
-                                <br><small class="text-muted">Complete overview</small>
-                            </div>
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- My Classes Section -->
-<div class="row" id="classes-section">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="card-title mb-0">My Classes</h5>
-                <span class="badge bg-primary">{{ classes|length }} classes</span>
-            </div>
-            <div class="card-body">
-                {% if classes %}
+            <div class="card-body p-0">
                 <div class="table-responsive">
-                    <table class="table table-hover table-striped">
+                    <table class="table table-striped table-hover mb-0">
                         <thead class="table-light">
                             <tr>
-                                <th>Class Name</th>
-                                <th>Section</th>
-                                <th>Students</th>
-                                <th>Results</th>
-                                <th>Status</th>
+                                <th>Subject Name</th>
+                                <th>Subject Code</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for class in classes %}
+                            {% for subject in subjects_taught %}
                             <tr>
-                                <td>
-                                    <strong>{{ class.class_name }}</strong>
-                                    {% if class.teacher_name %}
-                                    <br><small class="text-muted">Teacher: {{ class.teacher_name }}</small>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    <span class="badge bg-dark">{{ class.section }}</span>
-                                </td>
-                                <td>
-                                    <span class="badge bg-info">{{ class.student_count }}</span>
-                                </td>
-                                <td>
-                                    <span class="badge bg-{{ 'success' if class.result_count > 0 else 'secondary' }}">
-                                        {{ class.result_count }}
-                                    </span>
-                                </td>
-                                <td>
-                                    {% if class.result_count == 0 %}
-                                    <span class="badge bg-warning">No Results</span>
-                                    {% elif class.result_count == class.student_count %}
-                                    <span class="badge bg-success">Complete</span>
-                                    {% else %}
-                                    <span class="badge bg-primary">In Progress</span>
-                                    {% endif %}
-                                </td>
+                                <td><strong>{{ subject.subject_name }}</strong></td>
+                                <td><span class="badge bg-secondary">{{ subject.subject_code }}</span></td>
                                 <td>
                                     <div class="btn-group btn-group-sm">
-                                        <a href="{{ url_for('enter_marks', class_id=class.id) }}" class="btn btn-outline-primary" title="Enter Marks">
-                                            <i class="fas fa-edit"></i> Marks
+                                        <a href="{{ url_for('enter_marks_by_subject', subject_id=subject.id) }}" class="btn btn-outline-primary">
+                                            <i class="fas fa-edit me-1"></i> Enter Marks
                                         </a>
-                                        <a href="{{ url_for('view_results', class_id=class.id) }}" class="btn btn-outline-info" title="View Results">
-                                            <i class="fas fa-eye"></i> View
+                                        <a href="{{ url_for('view_results_by_subject', subject_id=subject.id) }}" class="btn btn-outline-info">
+                                            <i class="fas fa-list-alt me-1"></i> View Results
                                         </a>
-                                        <button class="btn btn-outline-success quick-stats" data-class-id="{{ class.id }}" title="Quick Stats">
-                                            <i class="fas fa-chart-pie"></i> Stats
-                                        </button>
                                     </div>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="3" class="text-center text-muted p-4">
+                                    You are not assigned to teach any subjects. Please contact your administrator.
                                 </td>
                             </tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
-                {% else %}
-                <div class="text-center py-5">
-                    <i class="fas fa-users fa-3x text-muted mb-3"></i>
-                    <h5 class="text-muted">No Classes Assigned</h5>
-                    <p class="text-muted">Please contact the administrator to get assigned to classes.</p>
-                    <a href="{{ url_for('logout') }}" class="btn btn-outline-primary mt-2">
-                        <i class="fas fa-sign-out-alt me-2"></i>Logout
-                    </a>
-                </div>
-                {% endif %}
             </div>
         </div>
     </div>
 </div>
 
-<!-- Recent Activity -->
-<div class="row mt-4">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="card-title mb-0">Recent Activity</h5>
-                <span class="badge bg-info">{{ recent_results|length }} entries</span>
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Your Recent Activity (Last 5 Results)</h5>
             </div>
             <div class="card-body p-0">
-                {% if recent_results %}
                 <div class="table-responsive">
-                    <table class="table table-hover table-sm mb-0">
+                    <table class="table table-striped table-hover mb-0">
                         <thead class="table-light">
                             <tr>
                                 <th>Student</th>
-                                <th>Subject</th>
                                 <th>Class</th>
-                                <th>Marks</th>
+                                <th>Subject</th>
+                                <th>Score</th>
                                 <th>Percentage</th>
-                                <th>Exam Type</th>
-                                <th>Date</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for result in recent_results %}
                             <tr>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <div class="avatar-sm bg-primary rounded-circle text-white d-flex align-items-center justify-content-center me-2">
-                                            {{ result.student_name[0] }}
-                                        </div>
-                                        <strong>{{ result.student_name }}</strong>
-                                    </div>
-                                </td>
+                                <td>{{ result.student_name }}</td>
+                                <td>{{ result.class_name }} - {{ result.section }}</td>
                                 <td>{{ result.subject_name }}</td>
-                                <td>{{ result.class_name }}</td>
+                                <td>{{ result.marks_obtained }} / {{ result.total_marks }}</td>
                                 <td>
-                                    <span class="badge bg-{{ 'success' if (result.marks_obtained/result.total_marks*100) >= 50 else 'warning' }}">
-                                        {{ result.marks_obtained }}/{{ result.total_marks }}
+                                    {% set perc = (result.marks_obtained / result.total_marks * 100) if result.total_marks > 0 else 0 %}
+                                    <span class="badge bg-{{ 'success' if perc >= 50 else 'danger' }}">
+                                        {{ "%.2f"|format(perc) }}%
                                     </span>
                                 </td>
-                                <td>
-                                    <strong>{{ "%.1f"|format((result.marks_obtained/result.total_marks*100)) }}%</strong>
-                                </td>
-                                <td>
-                                    <span class="badge bg-secondary">{{ result.exam_type }}</span>
-                                </td>
-                                <td>{{ result.created_at[:10] if result.created_at else 'N/A' }}</td>
                             </tr>
+                            {% else %}
+                            <tr><td colspan="5" class="text-center text-muted p-3">You have not entered any results yet.</td></tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
-                {% else %}
-                <div class="text-center py-5">
-                    <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
-                    <h5 class="text-muted">No Recent Activity</h5>
-                    <p class="text-muted">Results will appear here once you start entering marks.</p>
-                    <a href="#classes-section" class="btn btn-primary mt-2">
-                        <i class="fas fa-edit me-2"></i>Start Entering Marks
-                    </a>
-                </div>
-                {% endif %}
             </div>
         </div>
     </div>
 </div>
-
-<!-- Quick Stats Modal -->
-<div class="modal fade" id="statsModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Class Performance Analytics</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body" id="statsModalBody">
-                <!-- Stats will be loaded here -->
-            </div>
-        </div>
-    </div>
-</div>
-
-<style>
-.avatar-sm {
-    width: 32px;
-    height: 32px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.card {
-    border: 1px solid #e3e6f0;
-    border-radius: 0.75rem;
-}
-.card-header {
-    background-color: #f8f9fc;
-    border-bottom: 1px solid #e3e6f0;
-    padding: 1rem 1.25rem;
-}
-.btn-group-sm .btn {
-    padding: 0.25rem 0.5rem;
-    font-size: 0.875rem;
-}
-.btn-lg.text-start {
-    text-align: left !important;
-    padding: 1rem 1.25rem;
-}
-.table-hover tbody tr:hover {
-    background-color: rgba(0, 123, 255, 0.075);
-}
-</style>
-
-<script>
-// Update current time
-function updateTime() {
-    const now = new Date();
-    const timeString = now.toLocaleString('en-US', {
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit'
-    });
-    document.getElementById('current-time').textContent = timeString;
-}
-updateTime();
-setInterval(updateTime, 1000);
-
-// Quick stats functionality
-document.querySelectorAll('.quick-stats').forEach(button => {
-    button.addEventListener('click', function() {
-        const classId = this.getAttribute('data-class-id');
-        
-        // Show loading
-        document.getElementById('statsModalBody').innerHTML = `
-            <div class="text-center py-4">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
-                <p class="mt-2 text-muted">Loading class statistics...</p>
-            </div>
-        `;
-        
-        // Fetch class statistics
-        fetch(`/teacher/class_stats/${classId}`)
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    document.getElementById('statsModalBody').innerHTML = `
-                        <div>
-                            <h6 class="border-bottom pb-2">${data.class_name} - ${data.section}</h6>
-                            <div class="row mt-3">
-                                <div class="col-md-4 mb-3">
-                                    <div class="card bg-light">
-                                        <div class="card-body text-center">
-                                            <h3 class="text-primary">${data.total_students}</h3>
-                                            <small class="text-muted">Total Students</small>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-4 mb-3">
-                                    <div class="card bg-light">
-                                        <div class="card-body text-center">
-                                            <h3 class="text-success">${data.total_results}</h3>
-                                            <small class="text-muted">Results Entered</small>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-4 mb-3">
-                                    <div class="card bg-light">
-                                        <div class="card-body text-center">
-                                            <h3 class="text-warning">${data.average_percentage}%</h3>
-                                            <small class="text-muted">Average Percentage</small>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            ${data.top_subjects && data.top_subjects.length > 0 ? `
-                            <div class="mt-4">
-                                <h6>Subject Performance:</h6>
-                                <div class="list-group">
-                                    ${data.top_subjects.map(subject => `
-                                        <div class="list-group-item d-flex justify-content-between align-items-center">
-                                            <span>${subject.name}</span>
-                                            <div>
-                                                <span class="badge bg-${subject.average >= 75 ? 'success' : subject.average >= 50 ? 'warning' : 'danger'} me-2">
-                                                    ${subject.average}%
-                                                </span>
-                                                <div class="progress" style="width: 100px; height: 6px;">
-                                                    <div class="progress-bar bg-${subject.average >= 75 ? 'success' : subject.average >= 50 ? 'warning' : 'danger'}" 
-                                                         style="width: ${subject.average}%"></div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    `).join('')}
-                                </div>
-                            </div>
-                            ` : '<p class="text-muted text-center">No subject data available</p>'}
-                        </div>
-                    `;
-                } else {
-                    document.getElementById('statsModalBody').innerHTML = `
-                        <div class="alert alert-danger text-center">
-                            <i class="fas fa-exclamation-triangle me-2"></i>
-                            Error loading statistics
-                        </div>
-                    `;
-                }
-            })
-            .catch(error => {
-                document.getElementById('statsModalBody').innerHTML = `
-                    <div class="alert alert-danger text-center">
-                        <i class="fas fa-exclamation-circle me-2"></i>
-                        Error: ${error}
-                    </div>
-                `;
-            });
-        
-        // Show modal
-        new bootstrap.Modal(document.getElementById('statsModal')).show();
-    });
-});
-
-// Smooth scrolling for anchor links
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function (e) {
-        e.preventDefault();
-        const target = document.querySelector(this.getAttribute('href'));
-        if (target) {
-            target.scrollIntoView({
-                behavior: 'smooth',
-                block: 'start'
-            });
-        }
-    });
-});
-</script>
 {% endblock %}

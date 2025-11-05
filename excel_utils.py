@@ -1,398 +1,361 @@
-import pandas as pd
+import openpyxl
+import io
 import sqlite3
 from werkzeug.security import generate_password_hash
 from database import get_db_connection
-import io
+from models import Student, User, Subject, Class, Result
+
+#
+# >>> FIX:
+# I removed the incorrect "@app.route(...)" line that was here.
+# This file should only contain the class definition.
+#
 
 class ExcelImporter:
-    @staticmethod
-    def import_users(excel_file):
-        """Import users from Excel file"""
-        try:
-            # Read Excel file
-            df = pd.read_excel(excel_file)
-            
-            # Validate required columns
-            required_columns = ['username', 'password', 'role', 'name']
-            missing_columns = [col for col in required_columns if col not in df.columns]
-            if missing_columns:
-                return False, f"Missing required columns: {', '.join(missing_columns)}"
-            
-            # Validate roles
-            valid_roles = ['admin', 'teacher', 'student']
-            invalid_roles = df[~df['role'].isin(valid_roles)]['role'].tolist()
-            if invalid_roles:
-                return False, f"Invalid roles found: {', '.join(invalid_roles)}. Valid roles are: {', '.join(valid_roles)}"
-            
-            conn = get_db_connection()
-            cursor = conn.cursor()
-            
-            success_count = 0
-            error_messages = []
-            
-            for index, row in df.iterrows():
-                try:
-                    # Check if username already exists
-                    existing_user = cursor.execute(
-                        'SELECT id FROM users WHERE username = ?', (row['username'],)
-                    ).fetchone()
-                    
-                    if existing_user:
-                        error_messages.append(f"Row {index + 2}: Username '{row['username']}' already exists")
-                        continue
-                    
-                    # Hash password
-                    hashed_password = generate_password_hash(str(row['password']))
-                    
-                    # Insert user
-                    cursor.execute(
-                        'INSERT INTO users (username, password, role, name, email) VALUES (?, ?, ?, ?, ?)',
-                        (row['username'], hashed_password, row['role'], row['name'], row.get('email', ''))
-                    )
-                    success_count += 1
-                    
-                except Exception as e:
-                    error_messages.append(f"Row {index + 2}: {str(e)}")
-                    continue
-            
-            conn.commit()
-            conn.close()
-            
-            message = f"Successfully imported {success_count} users."
-            if error_messages:
-                message += f" Errors: {'; '.join(error_messages)}"
-            
-            return True, message
-            
-        except Exception as e:
-            return False, f"Error reading Excel file: {str(e)}"
-    
-    @staticmethod
-    def import_subjects(excel_file):
-        """Import subjects from Excel file"""
-        try:
-            df = pd.read_excel(excel_file)
-            
-            required_columns = ['subject_name', 'subject_code']
-            missing_columns = [col for col in required_columns if col not in df.columns]
-            if missing_columns:
-                return False, f"Missing required columns: {', '.join(missing_columns)}"
-            
-            conn = get_db_connection()
-            cursor = conn.cursor()
-            
-            success_count = 0
-            error_messages = []
-            
-            for index, row in df.iterrows():
-                try:
-                    # Check if subject name or code already exists
-                    existing_subject = cursor.execute(
-                        'SELECT id FROM subjects WHERE subject_name = ? OR subject_code = ?',
-                        (row['subject_name'], row['subject_code'])
-                    ).fetchone()
-                    
-                    if existing_subject:
-                        error_messages.append(f"Row {index + 2}: Subject '{row['subject_name']}' or code '{row['subject_code']}' already exists")
-                        continue
-                    
-                    cursor.execute(
-                        'INSERT INTO subjects (subject_name, subject_code) VALUES (?, ?)',
-                        (row['subject_name'], row['subject_code'])
-                    )
-                    success_count += 1
-                    
-                except Exception as e:
-                    error_messages.append(f"Row {index + 2}: {str(e)}")
-                    continue
-            
-            conn.commit()
-            conn.close()
-            
-            message = f"Successfully imported {success_count} subjects."
-            if error_messages:
-                message += f" Errors: {'; '.join(error_messages)}"
-            
-            return True, message
-            
-        except Exception as e:
-            return False, f"Error reading Excel file: {str(e)}"
-    
-    @staticmethod
-    def import_classes(excel_file):
-        """Import classes from Excel file"""
-        try:
-            df = pd.read_excel(excel_file)
-            
-            required_columns = ['class_name', 'section']
-            missing_columns = [col for col in required_columns if col not in df.columns]
-            if missing_columns:
-                return False, f"Missing required columns: {', '.join(missing_columns)}"
-            
-            conn = get_db_connection()
-            cursor = conn.cursor()
-            
-            success_count = 0
-            error_messages = []
-            
-            for index, row in df.iterrows():
-                try:
-                    # Check if class already exists
-                    existing_class = cursor.execute(
-                        'SELECT id FROM classes WHERE class_name = ? AND section = ?',
-                        (row['class_name'], row['section'])
-                    ).fetchone()
-                    
-                    if existing_class:
-                        error_messages.append(f"Row {index + 2}: Class '{row['class_name']} - {row['section']}' already exists")
-                        continue
-                    
-                    # Handle teacher assignment if provided
-                    teacher_id = None
-                    if 'teacher_username' in df.columns and pd.notna(row.get('teacher_username')):
-                        teacher = cursor.execute(
-                            'SELECT id FROM users WHERE username = ? AND role = "teacher"',
-                            (row['teacher_username'],)
-                        ).fetchone()
-                        if teacher:
-                            teacher_id = teacher['id']
-                        else:
-                            error_messages.append(f"Row {index + 2}: Teacher '{row['teacher_username']}' not found")
-                            continue
-                    
-                    cursor.execute(
-                        'INSERT INTO classes (class_name, section, teacher_id) VALUES (?, ?, ?)',
-                        (row['class_name'], row['section'], teacher_id)
-                    )
-                    success_count += 1
-                    
-                except Exception as e:
-                    error_messages.append(f"Row {index + 2}: {str(e)}")
-                    continue
-            
-            conn.commit()
-            conn.close()
-            
-            message = f"Successfully imported {success_count} classes."
-            if error_messages:
-                message += f" Errors: {'; '.join(error_messages)}"
-            
-            return True, message
-            
-        except Exception as e:
-            return False, f"Error reading Excel file: {str(e)}"
-    
-    @staticmethod
-    def import_results(excel_file):
-        """Import results from Excel file"""
-        try:
-            df = pd.read_excel(excel_file)
-            
-            required_columns = ['student_username', 'subject_code', 'class_name', 'section', 'marks_obtained', 'total_marks', 'exam_type']
-            missing_columns = [col for col in required_columns if col not in df.columns]
-            if missing_columns:
-                return False, f"Missing required columns: {', '.join(missing_columns)}"
-            
-            conn = get_db_connection()
-            cursor = conn.cursor()
-            
-            success_count = 0
-            error_messages = []
-            
-            for index, row in df.iterrows():
-                try:
-                    # Get student ID
-                    student = cursor.execute(
-                        'SELECT id FROM users WHERE username = ? AND role = "student"',
-                        (row['student_username'],)
-                    ).fetchone()
-                    if not student:
-                        error_messages.append(f"Row {index + 2}: Student '{row['student_username']}' not found")
-                        continue
-                    
-                    # Get subject ID
-                    subject = cursor.execute(
-                        'SELECT id FROM subjects WHERE subject_code = ?',
-                        (row['subject_code'],)
-                    ).fetchone()
-                    if not subject:
-                        error_messages.append(f"Row {index + 2}: Subject with code '{row['subject_code']}' not found")
-                        continue
-                    
-                    # Get class ID
-                    class_data = cursor.execute(
-                        'SELECT id FROM classes WHERE class_name = ? AND section = ?',
-                        (row['class_name'], row['section'])
-                    ).fetchone()
-                    if not class_data:
-                        error_messages.append(f"Row {index + 2}: Class '{row['class_name']} - {row['section']}' not found")
-                        continue
-                    
-                    # Get teacher ID (use current user or class teacher)
-                    teacher_id = class_data['teacher_id']
-                    if not teacher_id:
-                        error_messages.append(f"Row {index + 2}: No teacher assigned to class '{row['class_name']} - {row['section']}'")
-                        continue
-                    
-                    # Check if result already exists
-                    existing_result = cursor.execute(
-                        '''SELECT id FROM results 
-                         WHERE student_id = ? AND subject_id = ? AND class_id = ? AND exam_type = ?''',
-                        (student['id'], subject['id'], class_data['id'], row['exam_type'])
-                    ).fetchone()
-                    
-                    if existing_result:
-                        # Update existing result
-                        cursor.execute(
-                            '''UPDATE results SET marks_obtained = ?, total_marks = ?, academic_year = ?
-                             WHERE id = ?''',
-                            (float(row['marks_obtained']), float(row['total_marks']), 
-                             row.get('academic_year', '2024-2025'), existing_result['id'])
-                        )
-                    else:
-                        # Insert new result
-                        cursor.execute(
-                            '''INSERT INTO results 
-                            (student_id, subject_id, class_id, teacher_id, marks_obtained, total_marks, exam_type, academic_year)
-                            VALUES (?, ?, ?, ?, ?, ?, ?, ?)''',
-                            (student['id'], subject['id'], class_data['id'], teacher_id,
-                             float(row['marks_obtained']), float(row['total_marks']), 
-                             row['exam_type'], row.get('academic_year', '2024-2025'))
-                        )
-                    
-                    success_count += 1
-                    
-                except Exception as e:
-                    error_messages.append(f"Row {index + 2}: {str(e)}")
-                    continue
-            
-            conn.commit()
-            conn.close()
-            
-            message = f"Successfully imported/updated {success_count} results."
-            if error_messages:
-                message += f" Errors: {'; '.join(error_messages)}"
-            
-            return True, message
-            
-        except Exception as e:
-            return False, f"Error reading Excel file: {str(e)}"
-    
+
     @staticmethod
     def download_template(template_type):
-        """Generate template Excel files for download"""
+        """
+        Generates an Excel template file in memory for a given data type.
+        """
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        
+        headers = []
+        filename = "template.xlsx"
+
+        if template_type == 'users':
+            headers = ['username', 'password', 'role', 'name', 'email']
+            ws.title = "Users"
+            filename = "users_template.xlsx"
+        
+        elif template_type == 'students':
+            headers = [
+                'full_name', 'email', 'gender', 'date_of_birth', 
+                'class_name', 'section', 'roll_number', 
+                'fathers_name', 'mothers_name', 'mobile_number', 'academic_year'
+            ]
+            ws.title = "Students"
+            filename = "students_template.xlsx"
+            # Add note
+            ws['A2'] = "Jane Doe"
+            ws['B2'] = "jane.doe@example.com"
+            ws['C2'] = "Female"
+            ws['D2'] = "2010-05-15"
+            ws['E2'] = "Class 10"
+            ws['F2'] = "A"
+            ws['G2'] = 101
+            ws['H2'] = "John Doe"
+            ws['I2'] = "Mary Doe"
+            ws['J2'] = "1234567890"
+            ws['K2'] = "2024-2025"
+
+        elif template_type == 'subjects':
+            headers = ['subject_name', 'subject_code']
+            ws.title = "Subjects"
+            filename = "subjects_template.xlsx"
+        
+        elif template_type == 'classes':
+            headers = ['class_name', 'section', 'teacher_username']
+            ws.title = "Classes"
+            filename = "classes_template.xlsx"
+        
+        elif template_type == 'results':
+            headers = [
+                'student_username', 'subject_code', 'marks_obtained', 
+                'total_marks', 'exam_type', 'academic_year'
+            ]
+            ws.title = "Results"
+            filename = "results_template.xlsx"
+        
+        else:
+            return None, None
+
+        ws.append(headers)
+        
+        # Save to a byte stream
+        file_data = io.BytesIO()
+        wb.save(file_data)
+        file_data.seek(0)
+        
+        return file_data, filename
+
+    @staticmethod
+    def import_students(file_stream):
+        """
+        Imports students from an Excel file.
+        This function calls the Student.create_student model method,
+        which automatically creates the user account and student profile.
+        """
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
         try:
-            if template_type == 'users':
-                data = {
-                    'username': ['john_doe', 'jane_smith', 'bob_wilson'],
-                    'password': ['password123', 'password123', 'password123'],
-                    'role': ['student', 'teacher', 'admin'],
-                    'name': ['John Doe', 'Jane Smith', 'Bob Wilson'],
-                    'email': ['john@school.com', 'jane@school.com', 'bob@school.com']
-                }
-                filename = 'users_template.xlsx'
-                
-            elif template_type == 'subjects':
-                data = {
-                    'subject_name': ['Mathematics', 'Science', 'English'],
-                    'subject_code': ['MATH101', 'SCI101', 'ENG101']
-                }
-                filename = 'subjects_template.xlsx'
-                
-            elif template_type == 'classes':
-                data = {
-                    'class_name': ['10th Grade', '11th Grade', '12th Grade'],
-                    'section': ['A', 'B', 'A'],
-                    'teacher_username': ['teacher1', 'teacher2', 'teacher1']
-                }
-                filename = 'classes_template.xlsx'
-                
-            elif template_type == 'results':
-                data = {
-                    'student_username': ['student1', 'student2', 'student1'],
-                    'subject_code': ['MATH101', 'SCI101', 'ENG101'],
-                    'class_name': ['10th Grade', '10th Grade', '10th Grade'],
-                    'section': ['A', 'A', 'A'],
-                    'marks_obtained': [85, 92, 78],
-                    'total_marks': [100, 100, 100],
-                    'exam_type': ['Midterm', 'Midterm', 'Midterm'],
-                    'academic_year': ['2024-2025', '2024-2025', '2024-2025']
-                }
-                filename = 'results_template.xlsx'
-            else:
-                return None, "Invalid template type"
+            wb = openpyxl.load_workbook(file_stream)
+            ws = wb.active
             
-            df = pd.DataFrame(data)
-            output = io.BytesIO()
-            with pd.ExcelWriter(output, engine='openpyxl') as writer:
-                df.to_excel(writer, index=False, sheet_name='Template')
+            headers = [cell.value.lower().strip() for cell in ws[1]]
+            required_headers = [
+                'full_name', 'email', 'gender', 'date_of_birth', 
+                'class_name', 'section', 'roll_number', 
+                'fathers_name', 'mothers_name', 'academic_year'
+            ]
             
-            output.seek(0)
-            return output, filename
+            for header in required_headers:
+                if header not in headers:
+                    return False, f"Missing required column: {header}"
             
-        except Exception as e:
-            return None, f"Error generating template: {str(e)}"
-@classmethod
-def import_students(cls, file):
-    """Import students from Excel file"""
-    try:
-        df = pd.read_excel(file)
-        
-        # Validate required columns
-        required_columns = ['Full Name', 'Gender', 'Date of Birth', 'Class ID', 'Roll Number', 'Father\'s Name', 'Mother\'s Name']
-        missing_columns = [col for col in required_columns if col not in df.columns]
-        
-        if missing_columns:
-            return False, f"Missing required columns: {', '.join(missing_columns)}"
-        
-        success_count = 0
-        error_count = 0
-        errors = []
-        
-        for index, row in df.iterrows():
-            try:
-                full_name = str(row['Full Name']).strip()
-                gender = str(row['Gender']).strip()
-                date_of_birth = str(row['Date of Birth']).strip()
-                class_id = int(row['Class ID'])
-                roll_number = int(row['Roll Number'])
-                fathers_name = str(row['Father\'s Name']).strip()
-                mothers_name = str(row['Mother\'s Name']).strip()
-                mobile_number = str(row['Mobile Number']).strip() if 'Mobile Number' in df.columns and pd.notna(row['Mobile Number']) else None
+            added_count = 0
+            failed_rows = []
+            
+            for row_idx, row in enumerate(ws.iter_rows(min_row=2), start=2):
+                data = dict(zip(headers, [cell.value for cell in row]))
                 
-                # Validate data
-                if not all([full_name, gender, date_of_birth, fathers_name, mothers_name]):
-                    error_count += 1
-                    errors.append(f"Row {index+2}: Missing required fields")
-                    continue
-                
-                if gender not in ['Male', 'Female', 'Other']:
-                    error_count += 1
-                    errors.append(f"Row {index+2}: Invalid gender '{gender}'")
-                    continue
-                
-                # Create student
-                student_id, message = Student.create_student(
-                    full_name, gender, date_of_birth, class_id, roll_number,
-                    fathers_name, mobile_number, mothers_name
-                )
-                
-                if student_id:
-                    success_count += 1
-                else:
-                    error_count += 1
-                    errors.append(f"Row {index+2}: {message}")
+                try:
+                    # 1. Find class_id from class_name and section
+                    class_name = data.get('class_name')
+                    section = data.get('section')
                     
-            except Exception as e:
-                error_count += 1
-                errors.append(f"Row {index+2}: Error - {str(e)}")
-                continue
-        
-        message = f"Successfully imported {success_count} students"
-        if error_count > 0:
-            message += f", {error_count} failed. First few errors: {'; '.join(errors[:3])}"
-        
-        return True, message
-        
-    except Exception as e:
-        return False, f"Error reading Excel file: {str(e)}"
+                    class_data = cursor.execute(
+                        "SELECT id FROM classes WHERE class_name = ? AND section = ?",
+                        (class_name, section)
+                    ).fetchone()
+                    
+                    if not class_data:
+                        failed_rows.append(f"Row {row_idx}: Class '{class_name} - {section}' not found.")
+                        continue
+                        
+                    class_id = class_data['id']
+                    
+                    # 2. Get all required data
+                    full_name = data.get('full_name')
+                    email = data.get('email')
+                    gender = data.get('gender')
+                    # Ensure DOB is a string in YYYY-MM-DD format
+                    date_of_birth_raw = data.get('date_of_birth')
+                    if isinstance(date_of_birth_raw, datetime.datetime):
+                         date_of_birth = date_of_birth_raw.strftime('%Y-%m-%d')
+                    else:
+                         date_of_birth = str(date_of_birth_raw).split(' ')[0]
+                         
+                    roll_number = int(data.get('roll_number'))
+                    fathers_name = data.get('fathers_name')
+                    mothers_name = data.get('mothers_name')
+                    mobile_number = str(data.get('mobile_number', ''))
+                    academic_year = data.get('academic_year')
+
+                    # 3. Call the create_student model function
+                    student_id, message = Student.create_student(
+                        full_name, gender, date_of_birth, class_id, roll_number,
+                        fathers_name, mobile_number, mothers_name, email, academic_year
+                    )
+                    
+                    if student_id:
+                        added_count += 1
+                    else:
+                        failed_rows.append(f"Row {row_idx} ({full_name}): {message}")
+                        
+                except Exception as e:
+                    failed_rows.append(f"Row {row_idx}: Error processing - {str(e)}")
+
+            conn.close()
+            
+            message = f"Import complete. Successfully added {added_count} students."
+            if failed_rows:
+                message += "\n\nFailed rows:\n" + "\n".join(failed_rows)
+            
+            return True, message
+
+        except Exception as e:
+            conn.close()
+            return False, f"An error occurred: {str(e)}"
+
+    @staticmethod
+    def import_users(file_stream):
+        """Imports Admin/Teacher users from an Excel file."""
+        conn = get_db_connection()
+        try:
+            wb = openpyxl.load_workbook(file_stream)
+            ws = wb.active
+            headers = [cell.value.lower().strip() for cell in ws[1]]
+            
+            added_count = 0
+            failed_rows = []
+            
+            for row_idx, row in enumerate(ws.iter_rows(min_row=2), start=2):
+                data = dict(zip(headers, [cell.value for cell in row]))
+                
+                username = data.get('username')
+                password = data.get('password')
+                role = data.get('role')
+                name = data.get('name')
+                email = data.get('email', '')
+                
+                if not (username and password and role and name):
+                    failed_rows.append(f"Row {row_idx}: Missing required data.")
+                    continue
+                
+                if role == 'student':
+                    failed_rows.append(f"Row {row_idx} ({username}): Cannot bulk-add students. Use 'Upload Students' form.")
+                    continue
+                
+                user_id = User.create_user(username, str(password), role, name, email)
+                if user_id:
+                    added_count += 1
+                else:
+                    failed_rows.append(f"Row {row_idx} ({username}): Username already exists.")
+            
+            conn.close()
+            message = f"Import complete. Successfully added {added_count} users."
+            if failed_rows:
+                message += "\n\nFailed rows:\n" + "\n".join(failed_rows)
+            return True, message
+        except Exception as e:
+            conn.close()
+            return False, f"An error occurred: {str(e)}"
+
+    @staticmethod
+    def import_subjects(file_stream):
+        """Imports subjects from an Excel file."""
+        conn = get_db_connection()
+        try:
+            wb = openpyxl.load_workbook(file_stream)
+            ws = wb.active
+            headers = [cell.value.lower().strip() for cell in ws[1]]
+            
+            added_count = 0
+            failed_rows = []
+            
+            for row_idx, row in enumerate(ws.iter_rows(min_row=2), start=2):
+                data = dict(zip(headers, [cell.value for cell in row]))
+                
+                name = data.get('subject_name')
+                code = data.get('subject_code')
+                
+                if not (name and code):
+                    failed_rows.append(f"Row {row_idx}: Missing name or code.")
+                    continue
+                
+                if not Subject.create_subject(name, code):
+                    failed_rows.append(f"Row {row_idx} ({name}): Subject name or code already exists.")
+                else:
+                    added_count += 1
+            
+            conn.close()
+            message = f"Import complete. Successfully added {added_count} subjects."
+            if failed_rows:
+                message += "\n\nFailed rows:\n" + "\n".join(failed_rows)
+            return True, message
+        except Exception as e:
+            conn.close()
+            return False, f"An error occurred: {str(e)}"
+
+    @staticmethod
+    def import_classes(file_stream):
+        """Imports classes from an Excel file."""
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        try:
+            wb = openpyxl.load_workbook(file_stream)
+            ws = wb.active
+            headers = [cell.value.lower().strip() for cell in ws[1]]
+            
+            added_count = 0
+            failed_rows = []
+            
+            for row_idx, row in enumerate(ws.iter_rows(min_row=2), start=2):
+                data = dict(zip(headers, [cell.value for cell in row]))
+                
+                class_name = data.get('class_name')
+                section = data.get('section')
+                teacher_username = data.get('teacher_username')
+                
+                if not (class_name and section):
+                    failed_rows.append(f"Row {row_idx}: Missing class_name or section.")
+                    continue
+                
+                # Find teacher_id from username
+                teacher_id = None
+                if teacher_username:
+                    teacher = User.get_by_username(teacher_username)
+                    if teacher and teacher.role == 'teacher':
+                        teacher_id = teacher.id
+                    else:
+                        failed_rows.append(f"Row {row_idx}: Teacher '{teacher_username}' not found or is not a teacher.")
+                        continue
+                else:
+                    failed_rows.append(f"Row {row_idx}: Missing teacher_username.")
+                    continue
+
+                class_id, message = Class.create_class(class_name, section, teacher_id)
+                if class_id:
+                    added_count += 1
+                else:
+                    failed_rows.append(f"Row {row_idx} ({class_name}): {message}")
+            
+            conn.close()
+            message = f"Import complete. Successfully added {added_count} classes."
+            if failed_rows:
+                message += "\n\nFailed rows:\n" + "\n".join(failed_rows)
+            return True, message
+        except Exception as e:
+            conn.close()
+            return False, f"An error occurred: {str(e)}"
+
+    @staticmethod
+    def import_results(file_stream):
+        """Imports results from an Excel file."""
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        try:
+            wb = openpyxl.load_workbook(file_stream)
+            ws = wb.active
+            headers = [cell.value.lower().strip() for cell in ws[1]]
+            
+            added_count = 0
+            failed_rows = []
+            
+            for row_idx, row in enumerate(ws.iter_rows(min_row=2), start=2):
+                data = dict(zip(headers, [cell.value for cell in row]))
+                
+                try:
+                    student_username = data.get('student_username')
+                    subject_code = data.get('subject_code')
+                    marks_obtained = float(data.get('marks_obtained'))
+                    total_marks = float(data.get('total_marks'))
+                    exam_type = data.get('exam_type')
+                    academic_year = data.get('academic_year')
+                    
+                    # Find student_id
+                    student = User.get_by_username(student_username)
+                    if not (student and student.role == 'student'):
+                        failed_rows.append(f"Row {row_idx}: Student user '{student_username}' not found.")
+                        continue
+                    
+                    # Find subject_id
+                    subject = cursor.execute("SELECT id FROM subjects WHERE subject_code = ?", (subject_code,)).fetchone()
+                    if not subject:
+                        failed_rows.append(f"Row {row_idx}: Subject code '{subject_code}' not found.")
+                        continue
+                    
+                    result_id, message = Result.enter_marks(
+                        student.id, subject['id'], marks_obtained, 
+                        total_marks, exam_type, academic_year
+                    )
+                    
+                    if result_id:
+                        added_count += 1
+                    else:
+                        failed_rows.append(f"Row {row_idx} ({student_username}): {message}")
+
+                except Exception as e:
+                    failed_rows.append(f"Row {row_idx}: Error processing - {str(e)}")
+            
+            conn.close()
+            message = f"Import complete. Successfully added {added_count} results."
+            if failed_rows:
+                message += "\n\nFailed rows:\n" + "\n".join(failed_rows)
+            return True, message
+        except Exception as e:
+            conn.close()
+            return False, f"An error occurred: {str(e)}"
